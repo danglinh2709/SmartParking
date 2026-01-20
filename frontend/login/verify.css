@@ -1,0 +1,147 @@
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== CONTAINER ===== */
+.verify-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* ===== CARD ===== */
+.verify-card {
+  background: #ffffff;
+  width: 360px;
+  padding: 36px 32px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.5s ease;
+}
+
+/* ===== ICON ===== */
+.icon {
+  font-size: 42px;
+  margin-bottom: 6px;
+}
+
+/* ===== TEXT ===== */
+.verify-card h2 {
+  margin: 6px 0 8px;
+  color: #111827;
+}
+
+.desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+/* ===== EMAIL BOX ===== */
+.email-box {
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.email-box span {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.email-box strong {
+  font-weight: 600;
+}
+
+/* ===== OTP INPUT ===== */
+#otp {
+  width: 100%;
+  padding: 16px;
+  font-size: 22px;
+  text-align: center;
+  letter-spacing: 6px;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  margin-bottom: 18px;
+  transition: all 0.2s ease;
+}
+
+#otp:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+/* ===== BUTTON ===== */
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* ===== RESEND ===== */
+.resend {
+  font-size: 13px;
+  margin-top: 16px;
+  color: #374151;
+}
+
+.resend a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.resend a:hover {
+  text-decoration: underline;
+}
+
+/* ===== MESSAGE ===== */
+#msg {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

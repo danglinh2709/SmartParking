@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="../ChatBotAI/chatbotAI.css" />
+
+<div id="ai-icon">🤖</div>
+
+<div id="ai-chatbox">
+  <div class="header">
+    <span>AI SmartParking</span>
+    <span class="close">✖</span>
+  </div>
+
+  <div id="chat-body">
+    <div class="msg ai">
+       <b>Xin chào!</b><br />
+      Tôi là trợ lý AI của <b>SmartParking</b>.<br />
+      Tôi có thể hỗ trợ bạn:
+      <ul>
+        <li> Thông tin <b>vé gửi xe</b></li>
+        <li> <b>Đặt chỗ & thanh toán</b></li>
+        <li> <b>Huỷ vé – hoàn tiền</b></li>
+      </ul>
+       Bạn muốn hỏi vấn đề nào?
+    </div>
+  </div>
+
+  <!-- câu hỏi gợi ý -->
+  <div class="quick">
+    <button data-q="Các loại vé gửi xe hiện có"> Vé gửi xe</button>
+    <button data-q="Cách đặt chỗ và thanh toán"> Đặt chỗ</button>
+    <button data-q="Hủy vé và hoàn tiền như thế nào"> Hủy vé</button>
+  </div>
+
+  <!-- ô nhập text -->
+  <div class="input">
+    <input id="chatInput" placeholder="Nhập câu hỏi của bạn..." />
+    <button id="sendBtn">Gửi</button>
+  </div>
+</div>
+
+
+  <script src="../ChatBotAI/chatbotAI.js"></script>
+</div>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="./contact.css" />
+  </head>
+  <body>
+    <!-- <header>
+      <h1>Get in Touch With Us</h1>
+    </header> -->
+
+    <header id="navbar" class="header fixed">
+      <div class="logo">
+        <a href="/frontend/trangchu/index.html"
+          ><span class="orange">SMART</span><span class="blue">PARKING</span></a
+        >
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="/frontend/introduce/index.html">INTRODUCTION</a>
+          </li>
+          <li class="dropdown">
+            <a href="/frontend/products/product.html">PRODUCTS</a>
+            <i
+              class="fas fa-chevron-down"
+              style="font-size: 12px; color: black"
+            ></i>
+            <div class="dropdown-content">
+              <a href="/frontend/products/goicoban/goicoban.html"
+                >Smart Parking Basic Package</a
+              >
+              <a href="/frontend/products/goinangcao/goinangcao.html"
+                >Smart Parking Advanced Package</a
+              >
+              <a href="/frontend/products/goithue/goithue.html"
+                >SmartParking Rental Package</a
+              >
+            </div>
+          </li>
+
+          <li class="dropdown">
+            <a href="/frontend/solutions/giaiphap.html">SOLUTIONS</a>
+            <i class="fas fa-chevron-down" style="font-size: 12px"></i>
+            <div class="dropdown-content">
+              <a href="/frontend/solutions/MagneticCard/MagneticCard.html"
+                >Magnetic Card Parking Solutions</a
+              >
+              <a href="/frontend/solutions/apatment/apartment.html"
+                >Apartment Parking Solutions</a
+              >
+              <a href="/frontend/solutions/commercial/commercial.html"
+                >Commercial Parking Solutions</a
+              >
+              <a href="/frontend/solutions/parking/parking.html"
+                >Parking Guidance Solutions</a
+              >
+              <!--  -->
+              <a href="/frontend/solutions/SmartVehicle/SmartVehicle.html"
+                >Smart Vehicle Lifting Solutions</a
+              >
+              <a href="/frontend/solutions/VehicleAccess/VehicleAccess.html"
+                >Vehicle Entry and Exit Control Solutions</a
+              >
+              <a href="/frontend/solutions/factory/factory.html"
+                >Factory Parking Solutions</a
+              >
+              <a href="/frontend/solutions/hotel/hotel.html"
+                >Hotel Parking Management Solutions</a
+              >
+              <!--  -->
+              <a href="/frontend/solutions/vuichoi/vuichoi.html"
+                >Playground Control Solutions</a
+              >
+              <a href="/frontend/solutions/school/school.html"
+                >School Parking Solutions</a
+              >
+              <a href="/frontend/solutions/hospital/hospital.html"
+                >Hospital Parking Solutions</a
+              >
+              <a href="/frontend/solutions/bus/bus.html"
+                >Bus Station Parking Solutions</a
+              >
+            </div>
+          </li>
+          <li>
+            <a href="/frontend/contactus/contactus.html">CONTACT US</a>
+          </li>
+          <li><a href="/frontend/pay/pay.html">RESERVATION AND PAY</a></li>
+          <li class="login-button">
+            <a href="/frontend/login/dangnhap.html">LOGIN</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- nội dung -->
+    <div class="form-heading">
+      <h2>Need Assistance?</h2>
+      <p>Feel free to ask us anything. We're just a message away.</p>
+    </div>
+
+    <!-- bên trái -->
+    <div class="contact-container">
+      <!-- Contact Information -->
+      <div class="info-section">
+        <h2>Contact Information</h2>
+        <p>Say something to start a live chat!</p>
+        <div class="info-item">
+          <i class="fas fa-phone-alt"></i><span>0375424626</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-envelope"></i><span>danglinhloveu@gmail.com</span>
+        </div>
+        <div class="info-item">
+          <i class="fas fa-map-marker-alt"></i
+          ><span> No. 235 Hoang Quoc Viet, Co Nhue, Hanoi</span>
+        </div>
+
+        <!-- 
+      map -->
+        <div class="map-section">
+          <iframe
+            width="100%"
+            height="300"
+            frameborder="0"
+            scrolling="no"
+            marginheight="0"
+            marginwidth="0"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=105.7757%2C21.0458%2C105.7857%2C21.0558&layer=mapnik&marker=21.0508%2C105.7807"
+            style="border: 1px solid #ccc; border-radius: 10px"
+          >
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Contact Us Form -->
+      <div class="form-section">
+        <h1>Contact Us</h1>
+        <p>Got questions or feedback? Drop us a message!</p>
+        <form>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="first-name">First Name</label>
+              <input id="first-name" type="text" placeholder="First Name" />
+            </div>
+            <div class="form-group">
+              <label for="last-name">Last Name</label>
+              <input id="last-name" type="text" placeholder="Last Name" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="example@eg.com" />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input id="phone" type="text" placeholder="+92 333 345X 789" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="width: 100%">
+              <label for="subject">Select Subject</label>
+              <select id="subject" name="subject">
+                <option value="">-- Please Choose --</option>
+                <option value="general">General Inquiry</option>
+                <option value="pricing">Pricing Info</option>
+                <option value="support">Technical Support</option>
+                <option value="business">Business Partnership</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="width: 100%">
+              <label for="message">Message</label>
+              <textarea
+                id="message"
+                rows="6"
+                placeholder="Write your message here..."
+              ></textarea>
+            </div>
+          </div>
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- chatbox -->
+    <div id="ai-chat-container"></div>
+
+    <footer class="footer">
+      <div class="footer-container">
+        <!-- Cột trái -->
+        <div class="footer-column">
+          <p class="h1">
+            <span class="orange">SMART</span><span class="white">PARKING</span>
+          </p>
+          <p>
+            frontend management system helps manage parking lots quickly,
+            accurately, safely and economically.
+          </p>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- Cột giữa -->
+        <div class="footer-column">
+          <h2>Management Company</h2>
+          <p><strong>LTT Solution Joint Stock Company</strong></p>
+          <p>
+            <i class="fas fa-map-marker-alt"></i> No. 235 Hoang Quoc Viet, Co
+            Nhue, Hanoi
+          </p>
+          <p><i class="fas fa-phone-alt"></i> 0375424626</p>
+          <p><i class="fas fa-envelope"></i> info@smartparking.vn</p>
+        </div>
+
+        <!-- Cột phải -->
+        <div class="footer-column">
+          <h2>Categories</h2>
+          <ul>
+            <li>
+              <a href="/frontend/introduce/index.html">Introduction</a>
+            </li>
+            <li>
+              <a href="/frontend/solutions/giaiphap.html">Solutions</a>
+            </li>
+            <li>
+              <a href="/frontend/contactus/contactus.html">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 • www.smartparking.vn</p>
+        <a href="/frontend/trangchu/index.html" class="back-to-top"
+          >Back to top</a
+        >
+      </div>
+    </footer>
+
+    <script>
+      fetch("../ChatBotAI/chatbotAI.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("beforeend", html);
+
+          const script = document.createElement("script");
+          script.src = "../ChatBotAI/chatbotAI.js";
+
+          script.onload = () => {
+            initChatbot();
+          };
+
+          document.body.appendChild(script);
+        });
+    </script>
+
+    <script src="./contact.js"></script>
+  </body>
+</html>

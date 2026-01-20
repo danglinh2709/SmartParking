@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quản lý bãi đỗ</title>
+    <link rel="stylesheet" href="manager.css" />
+    <link rel="stylesheet" href="parking-lots.css" />
+  </head>
+  <body>
+    <div class="sidebar">
+      <h2>Quản Lý SmartParking</h2>
+      <a class="active" href="dashboard.html">Dashboard</a>
+      <a href="parking-lots.html">Bãi đỗ</a>
+      <a href="staff.html">Nhân viên</a>
+      <a href="assign-staff.html">Phân công</a>
+      <a href="contact-messages.html">Chăm sóc khách hàng</a>
+    </div>
+
+    <div class="main">
+      <div class="header">
+        <h1>🏢 Danh sách bãi đỗ</h1>
+        <button class="add-btn" onclick="openAddParkingForm()">
+          Thêm bãi đỗ
+        </button>
+      </div>
+      <div id="addParkingModal" class="modal hidden">
+        <div class="modal-content">
+          <h3 class="modal-title">Thêm bãi đỗ mới</h3>
+
+          <div class="form-group">
+            <label>Tên bãi đỗ</label>
+            <input id="p_name" type="text" placeholder="VD: Bãi xe Quận 1" />
+          </div>
+
+          <div class="form-group">
+            <label>Tổng số chỗ</label>
+            <input id="p_total" type="number" placeholder="VD: 200" />
+          </div>
+
+          <div class="form-group">
+            <label>Ảnh bãi đỗ</label>
+            <div class="file-input">
+              <input id="p_image" type="file" accept="image/*" />
+              <span>📷 Chọn ảnh bãi đỗ</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Vĩ độ (lat)</label>
+              <input
+                id="p_lat"
+                type="number"
+                step="any"
+                placeholder="10.762622"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Kinh độ (lng)</label>
+              <input
+                id="p_lng"
+                type="number"
+                step="any"
+                placeholder="106.660172"
+              />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" onclick="submitParking()">
+              💾 Lưu
+            </button>
+            <button class="btn ghost" onclick="closeAddParkingForm()">
+              ❌ Huỷ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tên bãi</th>
+            <th>Tổng chỗ</th>
+            <th>Chỗ trống</th>
+            <th>Trạng thái</th>
+            <th class="actions">Nghiệp vụ</th>
+          </tr>
+        </thead>
+        <tbody id="parkingTable"></tbody>
+      </table>
+    </div>
+
+    <script src="manager.js"></script>
+    <script src="parking-lots.js"></script>
+  </body>
+</html>

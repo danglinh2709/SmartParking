@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Đăng ký – Smart Parking</title>
+    <link rel="stylesheet" href="/frontend/login/auth.css" />
+  </head>
+
+  <body data-page="register">
+    <div class="wrap">
+      <div class="card grid">
+        <section class="hero">
+          <h1 class="h1">Tạo tài khoản</h1>
+
+          <div class="feature-grid">
+            <div class="feature-item">
+              <div class="feature-icon">🚗</div>
+              <p>Quản lý ra / vào bãi xe<br />theo thời gian thực</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">📷</div>
+              <p>Kết nối camera<br />& lưu lịch sử hình ảnh</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">📊</div>
+              <p>Thống kê – báo cáo<br />minh bạch</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🔒</div>
+              <p>Bảo mật theo vai trò<br />người dùng</p>
+            </div>
+          </div>
+
+          <p class="sub">Tài khoản đăng ký mặc định là <b>Khách thuê</b>.</p>
+        </section>
+
+        <aside class="panel">
+          <form id="registerForm" novalidate>
+            <div>
+              <label>Họ và tên</label>
+              <input id="fullName" required />
+              <div class="err" id="fullNameErr"></div>
+            </div>
+
+            <div>
+              <label>Email</label>
+              <input id="email" required />
+              <div class="err" id="emailErr"></div>
+            </div>
+
+            <div>
+              <label>SĐT</label>
+              <input id="phone" />
+              <div class="err" id="phoneErr"></div>
+            </div>
+
+            <div class="pwd">
+              <label>Mật khẩu</label>
+              <input id="password" type="password" required />
+              <button class="toggle" type="button" data-toggle="#password">
+                👁 <span>Hiện</span>
+              </button>
+              <div class="err" id="passwordErr"></div>
+            </div>
+
+            <div class="pwd">
+              <label>Xác nhận mật khẩu</label>
+              <input id="confirmPwd" type="password" required />
+              <div class="err" id="confirmPwdErr"></div>
+            </div>
+
+            <div class="actions">
+              <button class="btn" type="submit">Đăng ký</button>
+              <button
+                class="btn secondary"
+                type="button"
+                onclick="location.href='dangnhap.html'"
+              >
+                Quay lại đăng nhập
+              </button>
+            </div>
+          </form>
+        </aside>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="/frontend/login/auth.js"></script>
+  </body>
+</html>

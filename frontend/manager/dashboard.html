@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Manager Dashboard</title>
+
+    <link rel="stylesheet" href="manager.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+
+    <!-- Chart.js PHẢI LOAD TRƯỚC dashboard.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+
+  <body>
+    <div class="sidebar">
+      <h2>Quản Lý SmartParking</h2>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="parking-lots.html">Bãi đỗ</a>
+      <a href="staff.html">Nhân viên</a>
+      <a href="assign-staff.html">Phân công</a>
+      <a href="contact-messages.html">Chăm sóc khách hàng</a>
+    </div>
+
+    <div class="main">
+      <!-- HEADER -->
+      <div class="topbar">
+        <h1>📊 Tổng quan hệ thống</h1>
+        <div class="profile">
+          <button onclick="logout()">Đăng xuất</button>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stats">
+        <div class="stat-card" onclick="location.href='parking-lots.html'">
+          <p>Bãi đỗ</p>
+          <h2 id="parkingCount">--</h2>
+        </div>
+
+        <div class="stat-card" onclick="location.href='staff.html'">
+          <p>Nhân viên</p>
+          <h2 id="staffCount">--</h2>
+        </div>
+
+        <div class="stat-card" onclick="location.href='contact-messages.html'">
+          <p>Tin nhắn</p>
+          <h2 id="messageCount">--</h2>
+        </div>
+      </div>
+
+      <!-- BIỂU ĐỒ -->
+      <div class="grid">
+        <div class="card">
+          <h3>📈 Thống kê sử dụng 12 bãi đỗ</h3>
+          <canvas id="parkingChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script src="manager.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

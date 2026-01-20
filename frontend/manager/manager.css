@@ -1,0 +1,165 @@
+:root {
+  --primary: #2563eb;
+  --dark: #1f2937;
+  --bg: #f4f6f8;
+  --card: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: var(--bg);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 230px;
+  background: var(--dark);
+  color: #fff;
+  padding: 20px;
+  animation: slideIn 0.6s ease;
+}
+
+.sidebar h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.sidebar a {
+  display: block;
+  padding: 12px;
+  color: #cbd5e1;
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: 0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ===== MAIN ===== */
+.main {
+  flex: 1;
+  padding: 25px;
+  animation: fadeIn 0.6s ease;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.logout {
+  background: crimson;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ===== CARDS ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 15px;
+}
+
+th,
+td {
+  padding: 14px;
+  text-align: left;
+}
+
+th {
+  background: #e5e7eb;
+}
+
+tr:hover {
+  background: #f1f5f9;
+}
+
+button.primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.form-box {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;
+}
+
+.form-box label {
+  display: block;
+  margin-top: 10px;
+}
+
+.form-box select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+}
+
+.card.clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+.card.clickable::after {
+  content: "→";
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  font-size: 20px;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.card.clickable:hover::after {
+  opacity: 1;
+}
+
+.card.clickable:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+}

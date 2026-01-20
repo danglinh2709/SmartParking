@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Staff | Xác nhận vé</title>
+    <link rel="stylesheet" href="verify.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="logo">🚗 SmartParking</div>
+
+      <nav class="menu">
+        <a href="verify.html">Quản lý vé</a>
+        <a href="slots.html">Quản lý ô đỗ</a>
+        <a href="" class="active">Vận hành xe ra / vào</a>
+      </nav>
+      <div class="user">
+        <span id="parkingName"></span>
+        <button id="logoutBtn">Đăng xuất</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <!-- LEFT -->
+      <section class="left">
+        <div class="card">
+          <h3>🎫 Quét / nhập vé</h3>
+
+          <div class="ticket-box">
+            <input
+              id="ticketInput"
+              placeholder="📄 Mã vé (TICKET-xxxx)"
+              autocomplete="off"
+            />
+
+            <div class="ticket-actions">
+              <button class="btn primary" id="verifyBtn">Xác nhận</button>
+              <button class="btn qr" id="qrBtn">📷 Quét QR</button>
+            </div>
+          </div>
+
+          <div id="ticketInfo" class="ticket-card">
+            <div class="ticket-status pending">
+              Vui lòng quét vé / nhập mã vé để xác nhận
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📷 Camera quét QR</h3>
+          <video id="camQR" autoplay></video>
+          <canvas id="qrCanvas" hidden></canvas>
+        </div>
+
+        <div class="card highlight">
+          <button class="confirm" id="confirmBtn" disabled>
+            CHO XE VÀO BÃI
+          </button>
+          <button class="lane-toggle" id="laneToggleBtn">
+            🔄 Chuyển sang làn xe ra
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="right">
+        <div class="card">
+          <h3>📷 Camera biển số trước</h3>
+          <video id="camFront" autoplay></video>
+          <canvas id="canvasFront" hidden></canvas>
+        </div>
+
+        <div class="card">
+          <h3>📷 Camera biển số sau</h3>
+          <video id="camBack" autoplay></video>
+          <canvas id="canvasBack" hidden></canvas>
+        </div>
+      </section>
+    </main>
+
+    <script src="verify.js"></script>
+  </body>
+</html>

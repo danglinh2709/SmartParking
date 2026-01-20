@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Xác thực email</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./verify.css" />
+  </head>
+
+  <body>
+    <div class="verify-container">
+      <form id="verifyForm" class="verify-card">
+        <div class="icon">📧</div>
+
+        <h2>Xác thực email</h2>
+
+        <p class="desc">
+          Nhập mã xác thực gồm 6 chữ số đã được gửi tới email của bạn
+        </p>
+
+        <div class="email-box">
+          <span>Email</span>
+          <strong id="emailText"></strong>
+        </div>
+
+        <input
+          id="otp"
+          maxlength="6"
+          placeholder="••••••"
+          inputmode="numeric"
+          required
+        />
+
+        <button type="submit">
+          <span>Xác nhận</span>
+        </button>
+
+        <p class="resend">
+          Không nhận được mã?
+          <a href="#" id="resend">Gửi lại</a>
+        </p>
+
+        <div id="msg"></div>
+      </form>
+    </div>
+
+    <script src="verify.js"></script>
+  </body>
+</html>

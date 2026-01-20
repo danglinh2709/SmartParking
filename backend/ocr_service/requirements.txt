@@ -1,0 +1,8 @@
+flask
+easyocr
+opencv-python
+numpy<2
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
+torchaudio==2.2.2+cpu
+ultralytics==8.0.196

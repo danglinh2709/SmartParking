@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Đăng nhập – Smart Parking</title>
+    <link rel="stylesheet" href="/frontend/login/auth.css" />
+  </head>
+
+  <body data-page="login">
+    <div class="wrap">
+      <div class="card grid">
+        <section class="hero">
+          <h1 class="h1">Hệ thống Bãi đỗ xe Thông minh</h1>
+          <p class="sub">Đăng nhập hệ thống để sử dụng theo quyền hạn.</p>
+        </section>
+
+        <aside class="panel">
+          <form id="loginForm" novalidate>
+            <div>
+              <label>Email hoặc SĐT</label>
+              <input id="loginId" required />
+              <div class="err" id="loginIdErr"></div>
+            </div>
+
+            <div class="pwd">
+              <label>Mật khẩu</label>
+              <input id="loginPwd" type="password" required />
+              <button class="toggle" type="button" data-toggle="#loginPwd">
+                👁 <span>Hiện</span>
+              </button>
+              <div class="err" id="loginPwdErr"></div>
+            </div>
+
+            <div class="actions">
+              <button class="btn" type="submit">Đăng nhập</button>
+              <button
+                class="btn secondary"
+                type="button"
+                onclick="location.href='dangky.html'"
+              >
+                Tạo tài khoản
+              </button>
+            </div>
+          </form>
+        </aside>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="/frontend/login/auth.js"></script>
+  </body>
+</html>

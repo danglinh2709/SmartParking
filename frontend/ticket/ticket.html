@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vé gửi xe điện tử</title>
+    <link rel="stylesheet" href="./ticket.css" />
+
+    <!-- html2canvas để lưu ảnh -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <!-- ====== VÉ (PHẦN ĐƯỢC CHỤP ẢNH) ====== -->
+      <div id="ticket-card">
+        <h1>🎟️ VÉ GỬI XE ĐIỆN TỬ</h1>
+
+        <p><b>Mã vé:</b> <span id="ticketCode"></span></p>
+        <p><b>Bãi xe:</b> <span id="parkingName"></span></p>
+        <p><b>Biển số:</b> <span id="licensePlate">—</span></p>
+
+        <p><b>Vị trí:</b> <span id="spotNumber"></span></p>
+        <p><b>Thời gian vào:</b> <span id="startTime"></span></p>
+        <p><b>Hiệu lực đến:</b> <span id="endTime"></span></p>
+
+        <img id="qrTicket" alt="QR Ticket" />
+      </div>
+      <!-- ====== NÚT (KHÔNG BỊ CHỤP) ====== -->
+      <div class="ticket-actions">
+        <button onclick="saveTicket()">💾 Lưu vé</button>
+        <button onclick="downloadQR()">📥 Tải QR</button>
+        <button onclick="goHome()">🏠 Trang chủ</button>
+      </div>
+    </div>
+
+    <script src="./ticket.js"></script>
+  </body>
+</html>

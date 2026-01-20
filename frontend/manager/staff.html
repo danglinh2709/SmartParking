@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nhân viên</title>
+    <link rel="stylesheet" href="manager.css" />
+    <link rel="stylesheet" href="staff.css" />
+  </head>
+  <body>
+    <div class="sidebar">
+      <h2>Quản Lý SmartParking</h2>
+      <a class="active" href="dashboard.html">Dashboard</a>
+      <a href="parking-lots.html">Bãi đỗ</a>
+      <a href="staff.html">Nhân viên</a>
+      <a href="assign-staff.html">Phân công</a>
+      <a href="contact-messages.html">Chăm sóc khách hàng</a>
+    </div>
+    <div class="main">
+      <div class="header">
+        <h1>👷 Danh sách nhân viên</h1>
+      </div>
+      <button class="btn-add" onclick="addStaff()">Thêm mới</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>Bãi đang làm</th>
+            <th>Trạng thái</th>
+            <th>Nghiệp vụ</th>
+          </tr>
+        </thead>
+        <tbody id="staffTable">
+          <!-- JS render -->
+        </tbody>
+      </table>
+    </div>
+    <!-- MODAL THÊM NHÂN VIÊN -->
+    <div id="addStaffModal" class="modal hidden">
+      <div class="modal-content fancy">
+        <div class="modal-header">
+          <span class="modal-icon">👷‍♂️</span>
+          <div>
+            <h3>Thêm nhân viên mới</h3>
+            <p>Tạo tài khoản nhân viên cho hệ thống</p>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Họ và tên</label>
+            <input id="addFullName" placeholder="VD: Nguyễn Văn A" />
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input id="addEmail" placeholder="email@company.com" />
+          </div>
+
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input id="addPhone" placeholder="VD: 0987xxxxxx" />
+          </div>
+
+          <div class="note">
+            🔐 Nhân viên sẽ nhận được tài khoản đăng nhập qua email.
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn secondary" onclick="closeAddStaff()">Huỷ</button>
+          <button class="btn primary" onclick="submitAddStaff()">
+            Tạo nhân viên
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="manager.js"></script>
+    <script src="staff.js"></script>
+  </body>
+</html>

@@ -1,0 +1,185 @@
+.form-box {
+  max-width: 520px;
+  background: #fff;
+  padding: 28px 32px;
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+  animation: fadeUp 0.5s ease;
+}
+
+.form-box label {
+  font-weight: 600;
+  margin-top: 16px;
+  display: block;
+  color: #1e293b;
+}
+
+.form-box select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid #cbd5f5;
+  font-size: 15px;
+  background: #f8fafc;
+}
+
+.form-box select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.form-box button.primary {
+  margin-top: 22px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.form-box button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+}
+.form-box .success-message {
+  margin-top: 16px;
+  padding: 12px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 8px;
+  font-weight: 600;
+}
+/* ===== DROPDOWN ===== */
+.dropdown {
+  position: relative;
+}
+
+.dropdown input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5f5;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.dropdown input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* LIST */
+.dropdown-list {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  display: none;
+  z-index: 20;
+}
+
+.dropdown-list div {
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dropdown-list div:hover {
+  background: #f1f5f9;
+}
+.assignments {
+  margin-top: 40px;
+  background: #ffffff;
+  padding: 26px;
+  border-radius: 18px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+}
+
+.assignments h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.assignments table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.assignments th,
+.assignments td {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.assignments thead {
+  background: #f1f5f9;
+}
+
+.assignments tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: 0.2s;
+}
+
+.assignments tbody tr:hover {
+  background: #f8fafc;
+}
+
+.assignments td {
+  font-size: 14px;
+  color: #334155;
+}
+
+/* badge access code */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #2563eb;
+  color: #fff;
+}
+.edit-btn,
+.delete-btn {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-btn {
+  background: #e0f2fe;
+  color: #0369a1;
+  margin-right: 6px;
+}
+
+.delete-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.edit-btn:hover {
+  background: #bae6fd;
+}
+
+.delete-btn:hover {
+  background: #fecaca;
+}
+
+.edit-select {
+  padding: 6px 8px;
+  border-radius: 6px;
+}

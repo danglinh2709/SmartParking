@@ -1,0 +1,112 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  display: flex;
+}
+.sidebar {
+  background: #ddd;
+  border-radius: 20px;
+  box-shadow: 0 10px 14px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  text-align: left;
+  border-right: 2px solid #ccc;
+  width: 250px;
+  /* background-color:orange; */
+  /* background: linear-gradient(to right, #dba206, #00c3ff); */
+}
+.container {
+  flex: 1;
+  padding: 5px;
+}
+.lane-container {
+  display: flex;
+  gap: 20px;
+  margin-top: 80px;
+}
+.lane {
+  flex: 1;
+  padding: 20px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  box-shadow: 2px 4px 9px rgba(0, 0, 0, 0.1);
+}
+.lane-title {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.plate-container {
+  display: flex;
+  justify-content: space-between;
+}
+.plate {
+  flex: 1;
+  text-align: center;
+}
+.plate img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  margin-bottom: 100px;
+}
+.thong-ke-container {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.thong-ke-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 40px; /* Khoảng cách giữa 2 bảng */
+  width: 100%;
+}
+
+.stats,
+.stats_exit {
+  width: 320px; /* Định kích thước cho bảng */
+  padding: 20px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+
+  text-align: center;
+  box-shadow: 2px 4px 9px rgba(0, 0, 0, 0.1);
+}
+
+.bike {
+  background: blue;
+}
+.motorbike {
+  background: orange;
+}
+.car {
+  background: red;
+}
+.employee {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  text-align: center;
+}
+.employee img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+/* Nút reset bãi đỗ */
+.reset-btn {
+  position: fixed;
+  top: 20px;
+  right: 120px;
+  background: red;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}

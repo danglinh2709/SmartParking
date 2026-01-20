@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pay for Parking</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link rel="stylesheet" href="./tra.css" />
+  </head>
+  <body>
+    <header id="navbar" class="header fixed">
+      <div class="logo">
+        <a href="/frontend/trangchu/index.html"
+          ><span class="orange">SMART</span><span class="blue">PARKING</span></a
+        >
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="/frontend/introduce/index.html">INTRODUCTION</a>
+          </li>
+          <li class="dropdown">
+            <a href="/frontend/products/product.html">PRODUCTS</a>
+            <i
+              class="fas fa-chevron-down"
+              style="font-size: 12px; color: black"
+            ></i>
+            <div class="dropdown-content">
+              <a href="/frontend/products/goicoban/goicoban.html"
+                >Smart Parking Basic Package</a
+              >
+              <a href="/frontend/products/goinangcao/goinangcao.html"
+                >Smart Parking Advanced Package</a
+              >
+              <a href="/frontend/products/goithue/goithue.html"
+                >SmartParking Rental Package</a
+              >
+            </div>
+          </li>
+
+          <li class="dropdown">
+            <a href="/frontend/solutions/giaiphap.html">SOLUTIONS</a>
+            <i class="fas fa-chevron-down" style="font-size: 12px"></i>
+            <div class="dropdown-content">
+              <a href="/frontend/solutions/MagneticCard/MagneticCard.html"
+                >Magnetic Card Parking Solutions</a
+              >
+              <a href="/frontend/solutions/apatment/apartment.html"
+                >Apartment Parking Solutions</a
+              >
+              <a href="/frontend/solutions/commercial/commercial.html"
+                >Commercial Parking Solutions</a
+              >
+              <a href="/frontend/solutions/parking/parking.html"
+                >Parking Guidance Solutions</a
+              >
+              <!--  -->
+              <a href="/frontend/solutions/SmartVehicle/SmartVehicle.html"
+                >Smart Vehicle Lifting Solutions</a
+              >
+              <a href="/frontend/solutions/VehicleAccess/VehicleAccess.html"
+                >Vehicle Entry and Exit Control Solutions</a
+              >
+              <a href="/frontend/solutions/factory/factory.html"
+                >Factory Parking Solutions</a
+              >
+              <a href="/frontend/solutions/hotel/hotel.html"
+                >Hotel Parking Management Solutions</a
+              >
+              <!--  -->
+              <a href="/frontend/solutions/vuichoi/vuichoi.html"
+                >Playground Control Solutions</a
+              >
+              <a href="/frontend/solutions/school/school.html"
+                >School Parking Solutions</a
+              >
+              <a href="/frontend/solutions/hospital/hospital.html"
+                >Hospital Parking Solutions</a
+              >
+              <a href="/frontend/solutions/bus/bus.html"
+                >Bus Station Parking Solutions</a
+              >
+            </div>
+          </li>
+          <li>
+            <a href="/frontend/contactus/contactus.html">CONTACT US</a>
+          </li>
+          <li><a href="/frontend/pay/pay.html">RESERVATION AND PAY</a></li>
+          <li class="login-button">
+            <a href="/frontend/login/dangnhap.html">LOGIN</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="pay-section">
+      <div class="container">
+        <h2 class="headline">Unlock Your Parking Spot – Pay Now</h2>
+        <p class="subtext">
+          To pay for your parking using a scratch card, please follow these
+          steps:
+        </p>
+        <div class="khoidoi">
+          <div class="pay-box">
+            <!-- Left box -->
+            <div class="left-box">
+              <h3>Pay for your</h3>
+              <h2>Parking Spot</h2>
+              <p class="ticket-label">Enter Ticket Number</p>
+              <p class="ticket-note">mentioned on your parking ticket</p>
+              <img id="qrTicket" class="ticket-img" alt="QR Ticket" />
+
+              <p class="warning">
+                ⏳ Vui lòng thanh toán trong <span id="countdown">10:00</span>
+              </p>
+            </div>
+
+            <!-- Right box -->
+            <div class="right-box">
+              <h2>Pay for Parking</h2>
+              <p class="right-text">
+                To complete your parking payment, please provide the necessary
+                information in the fields below.
+              </p>
+              <div class="khung"><div class="khungbe"></div></div>
+              <button onclick="payNow()" class="scan-button">
+                Thanh toán ngay 💳
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL PAYMENT -->
+      <div id="paymentModal" class="modal hidden">
+        <div class="modal-content">
+          <h3>Chọn phương thức thanh toán</h3>
+
+          <button class="pay-method" onclick="selectPayment('vnpay')">
+            💳 VNPay
+          </button>
+
+          <button class="pay-method" onclick="selectPayment('zalopay')">
+            📱 ZaloPay
+          </button>
+
+          <button class="pay-method" onclick="selectPayment('momo')">
+            🟣 MoMo
+          </button>
+
+          <button class="pay-method" onclick="selectPayment('bank')">
+            🏦 Chuyển khoản ngân hàng
+          </button>
+
+          <button class="close-btn" onclick="closePaymentModal()">Đóng</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- kết -->
+    <footer class="footer">
+      <div class="footer-container">
+        <!-- Cột trái -->
+        <div class="footer-column">
+          <p class="h1">
+            <span class="orange">SMART</span><span class="white">PARKING</span>
+          </p>
+          <p>
+            Smart parking management system helps manage parking lots quickly,
+            accurately, safely and economically.
+          </p>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- Cột giữa -->
+        <div class="footer-column">
+          <h2>Management Company</h2>
+          <p><strong>LTT Solution Joint Stock Company</strong></p>
+          <p>
+            <i class="fas fa-map-marker-alt"></i> No. 235 Hoang Quoc Viet, Co
+            Nhue, Hanoi
+          </p>
+          <p><i class="fas fa-phone-alt"></i> 0375424626</p>
+          <p><i class="fas fa-envelope"></i> info@smartparking.vn</p>
+        </div>
+
+        <!-- Cột phải -->
+        <div class="footer-column">
+          <h2>Categories</h2>
+          <ul>
+            <li>
+              <a href="/smart parking/introduce/index.html">Introduction</a>
+            </li>
+            <li>
+              <a href="/smart parking/solutions/giaiphap.html">Solutions</a>
+            </li>
+            <li>
+              <a href="/smart parking/contactus/contactus.html">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 • www.smartparking.vn</p>
+        <a href="/smart parking/trangchu/index.html" class="back-to-top"
+          >Back to top</a
+        >
+      </div>
+    </footer>
+
+    <script src="./tra.js" defer></script>
+  </body>
+</html>

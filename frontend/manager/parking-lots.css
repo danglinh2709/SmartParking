@@ -1,0 +1,336 @@
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* ===== ADD BUTTON ===== */
+.add-btn {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 15px rgba(20, 184, 166, 0.35);
+  transition: all 0.25s ease;
+}
+
+.add-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.45);
+}
+
+.add-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(20, 184, 166, 0.25);
+}
+
+/* ===== TABLE ===== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+thead {
+  background: linear-gradient(135deg, #f1f5f9, #e5e7eb);
+}
+
+th,
+td {
+  padding: 14px;
+  text-align: left;
+}
+
+tbody tr {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+  transform: translateZ(10px) scale(1.005);
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+
+/* ===== STATUS BADGE ===== */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.status.active {
+  color: #16a34a;
+}
+.status.active::before {
+  background: #16a34a;
+}
+
+.status.warning {
+  color: #f59e0b;
+}
+.status.warning::before {
+  background: #f59e0b;
+}
+
+.status.full {
+  color: #dc2626;
+}
+.status.full::before {
+  background: #dc2626;
+}
+
+.status.disabled {
+  color: #6b7280;
+}
+.status.disabled::before {
+  background: #6b7280;
+  animation: none;
+}
+
+/* ===== ICON BUTTON ===== */
+.icon-btn {
+  border: none;
+  background: #f8fafc;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.icon-btn:hover {
+  transform: translateY(-2px) rotate(-2deg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.icon-btn.edit:hover {
+  background: #dbeafe;
+}
+
+.icon-btn.delete:hover {
+  background: #fee2e2;
+}
+
+.icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* ===== EDIT INPUT ===== */
+.edit-input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+.edit-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ===== DISABLED ROW ===== */
+tr.disabled {
+  background: #f3f4f6;
+  opacity: 0.6;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 18px;
+  width: 420px;
+  transform: translateY(30px) scale(0.95);
+  transition: transform 0.3s ease;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+}
+
+.modal.show .modal-content {
+  transform: translateY(0) scale(1);
+}
+
+.modal input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #d1d5db;
+  transition: 0.2s;
+}
+
+.modal input:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.2);
+}
+
+/* ===== UTILS ===== */
+.hidden {
+  display: none;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+/* ===== MODAL TITLE ===== */
+.modal-title {
+  margin-bottom: 18px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ===== FORM GROUP ===== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ===== INPUT ===== */
+.form-group input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #d1d5db;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.form-group input:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.25);
+  outline: none;
+}
+
+/* ===== FORM ROW (lat/lng) ===== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ===== FILE INPUT CUSTOM ===== */
+.file-input {
+  position: relative;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: 0.25s;
+}
+
+.file-input:hover {
+  border-color: #14b8a6;
+  background: #f0fdfa;
+}
+
+.file-input span {
+  font-size: 14px;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.file-input input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: 0.25s;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: white;
+  box-shadow: 0 8px 20px rgba(20, 184, 166, 0.35);
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(20, 184, 166, 0.45);
+}
+
+.btn.ghost {
+  background: #f1f5f9;
+  color: #374151;
+}
+
+.btn.ghost:hover {
+  background: #e5e7eb;
+}

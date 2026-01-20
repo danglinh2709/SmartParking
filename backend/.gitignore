@@ -1,0 +1,36 @@
+# Node.js
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-wheel-metadata/
+
+# AI / ML models
+*.pt
+*.onnx
+*.h5
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

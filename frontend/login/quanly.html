@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ thống quản lý bãi đỗ xe thông minh</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #0b1224;
+        --line: #1f2937;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --accent: #22c55e;
+        --danger: #ef4444;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+          Arial, sans-serif;
+        background: linear-gradient(135deg, #0b1023, #09122b);
+        color: var(--text);
+      }
+      .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 16px;
+        background: linear-gradient(180deg, #0b1224, #0b1224cc);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      #logoutBtn {
+        padding: 10px 14px;
+        border: none;
+        border-radius: 10px;
+        background: #ef4444;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      #current-time {
+        font-size: 15px;
+        color: #cbd5e1;
+        margin: 6px 0 16px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .sidebar {
+        background: #0b1327;
+        border: 1px solid #1f2a44;
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .sidebar h3 {
+        margin: 0 0 10px;
+      }
+      .sidebar p {
+        margin: 6px 0;
+        color: #cbd5e1;
+      }
+      .sidebar span {
+        color: #a7f3d0;
+      }
+      .videoBox {
+        background: #0b1327;
+        border: 1px solid #1f2a44;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      video {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        background: #000;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .btn {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: #e5e7eb;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: #065f46;
+        border-color: #065f46;
+        color: #d1fae5;
+      }
+      .lane-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 14px;
+      }
+      @media (max-width: 980px) {
+        .lane-container {
+          grid-template-columns: 1fr;
+        }
+      }
+      .lane {
+        background: #0b1327;
+        border: 1px solid #1f2a44;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .lane-title {
+        margin: 0 0 10px;
+        color: #a7f3d0;
+      }
+      .plate-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      @media (max-width: 560px) {
+        .plate-container {
+          grid-template-columns: 1fr;
+        }
+      }
+      .plate {
+        background: #0f172a;
+        border: 1px solid #253049;
+        border-radius: 10px;
+        padding: 8px;
+        text-align: center;
+      }
+      .plate h3 {
+        margin: 6px 0 8px;
+        font-size: 14px;
+      }
+      .plate img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #111827;
+      }
+      .thong-ke-container {
+        margin-top: 14px;
+      }
+      .thong-ke-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 980px) {
+        .thong-ke-wrapper {
+          grid-template-columns: 1fr;
+        }
+      }
+      .stats,
+      .stats_exit {
+        background: #0b1327;
+        border: 1px solid #1f2a44;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .employee {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        background: #0b1327;
+        border: 1px solid #1f2a44;
+        border-radius: 12px;
+        padding: 10px 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .employee img {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .toast {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        background: #052e24;
+        color: #bbf7d0;
+        border: 1px solid #0ea66a;
+        padding: 10px 12px;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px #0007;
+        display: none;
+        z-index: 1000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="topbar">
+        <h1>Hệ thống quản lý bãi đỗ xe thông minh</h1>
+        <button id="logoutBtn">Đăng xuất</button>
+      </div>
+      <p id="current-time"></p>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <h3>Thông tin xe</h3>
+          <p>Biển số: <span id="bienSo">---</span></p>
+          <p>Thời gian vào: <span id="thoiGianVao">---</span></p>
+          <p>Thời gian ra: <span id="thoiGianRa">---</span></p>
+          <p>Tiền gửi xe: <span id="soTien">---</span></p>
+        </aside>
+
+        <main>
+          <section class="videoBox">
+            <video id="webcam" autoplay playsinline></video>
+            <div class="controls">
+              <button class="btn primary" id="capture">Chụp ảnh</button>
+              <button class="btn" id="switch-lane">Chuyển làn</button>
+              <span id="laneLabel" style="color: #a7f3d0"
+                >Làn hiện tại: VÀO</span
+              >
+            </div>
+            <canvas id="snapshot" style="display: none"></canvas>
+
+            <div class="lane-container">
+              <div class="lane">
+                <p class="lane-title">Làn xe vào</p>
+                <div class="plate-container">
+                  <div class="plate">
+                    <h3>Biển số trước</h3>
+                    <img
+                      id="bienso_truoc_vao"
+                      src="default.png"
+                      alt="Ảnh biển số trước vào"
+                    />
+                  </div>
+                  <div class="plate">
+                    <h3>Biển số sau</h3>
+                    <img
+                      id="bienso_sau_vao"
+                      src="default.png"
+                      alt="Ảnh biển số sau vào"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="lane">
+                <p class="lane-title">Làn xe ra</p>
+                <div class="plate-container">
+                  <div class="plate">
+                    <h3>Biển số trước</h3>
+                    <img
+                      id="bienso_truoc_ra"
+                      src="default.png"
+                      alt="Ảnh biển số trước ra"
+                    />
+                  </div>
+                  <div class="plate">
+                    <h3>Biển số sau</h3>
+                    <img
+                      id="bienso_sau_ra"
+                      src="default.png"
+                      alt="Ảnh biển số sau ra"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="thong-ke-container">
+            <div class="thong-ke-wrapper">
+              <div class="stats">
+                <h2>Thống kê chỗ trống</h2>
+                <p>🚗 Ô tô: <span id="car-count">300</span> chỗ trống</p>
+                <p>
+                  🏍️ Xe máy: <span id="motorbike-count">250</span> chỗ trống
+                </p>
+                <p>
+                  🚲 Xe đạp/điện: <span id="bike-count">100</span> chỗ trống
+                </p>
+              </div>
+              <div class="stats_exit">
+                <h2>Đang đỗ trong bãi</h2>
+                <p>🚗 Ô tô: <span id="car-count-exit">0</span> xe</p>
+                <p>🏍️ Xe máy: <span id="motorbike-count-exit">0</span> xe</p>
+                <p>🚲 Xe đạp/điện: <span id="bike-count-exit">0</span> xe</p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="employee">
+      <img src="default.png" alt="Nhân viên" />
+      <p><strong id="employee-name">Nhân viên</strong></p>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="quanly.js"></script>
+  </body>
+</html>

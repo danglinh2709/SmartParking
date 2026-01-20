@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservation and Pay</title>
+    <link rel="stylesheet" href="./pay.css" />
+    <style></style>
+  </head>
+  <body>
+    <header id="navbar" class="header fixed">
+      <div class="logo">
+        <a href="/frontend/trangchu/index.html"
+          ><span class="orange">SMART</span><span class="blue">PARKING</span></a
+        >
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="/frontend/introduce/index.html">INTRODUCTION</a>
+          </li>
+          <li class="dropdown">
+            <a href="/frontend/products/product.html">PRODUCTS</a>
+            <i
+              class="fas fa-chevron-down"
+              style="font-size: 12px; color: black"
+            ></i>
+            <div class="dropdown-content">
+              <a href="/frontend/products/goicoban/goicoban.html"
+                >Smart Parking Basic Package</a
+              >
+              <a href="/frontend/products/goinangcao/goinangcao.html"
+                >Smart Parking Advanced Package</a
+              >
+              <a href="/frontend/products/goithue/goithue.html"
+                >SmartParking Rental Package</a
+              >
+            </div>
+          </li>
+
+          <li class="dropdown">
+            <a href="/frontend/solutions/giaiphap.html">SOLUTIONS</a>
+            <i class="fas fa-chevron-down" style="font-size: 12px"></i>
+            <div class="dropdown-content">
+              <a href="/frontend/solutions/MagneticCard/MagneticCard.html"
+                >Magnetic Card Parking Solutions</a
+              >
+              <a href="/frontend/solutions/apatment/apartment.html"
+                >Apartment Parking Solutions</a
+              >
+              <a href="/frontend/solutions/commercial/commercial.html"
+                >Commercial Parking Solutions</a
+              >
+              <a href="/frontend/solutions/parking/parking.html"
+                >Parking Guidance Solutions</a
+              >
+              <!--  -->
+              <a href="/frontend/solutions/SmartVehicle/SmartVehicle.html"
+                >Smart Vehicle Lifting Solutions</a
+              >
+              <a href="/frontend/solutions/VehicleAccess/VehicleAccess.html"
+                >Vehicle Entry and Exit Control Solutions</a
+              >
+              <a href="/frontend/solutions/factory/factory.html"
+                >Factory Parking Solutions</a
+              >
+              <a href="/frontend/solutions/hotel/hotel.html"
+                >Hotel Parking Management Solutions</a
+              >
+              <!--  -->
+              <a href="/frontend/solutions/vuichoi/vuichoi.html"
+                >Playground Control Solutions</a
+              >
+              <a href="/frontend/solutions/school/school.html"
+                >School Parking Solutions</a
+              >
+              <a href="/frontend/solutions/hospital/hospital.html"
+                >Hospital Parking Solutions</a
+              >
+              <a href="/frontend/solutions/bus/bus.html"
+                >Bus Station Parking Solutions</a
+              >
+            </div>
+          </li>
+          <li>
+            <a href="/frontend/contactus/contactus.html">CONTACT US</a>
+          </li>
+          <li><a href="/frontend/pay/pay.html">RESERVATION AND PAY</a></li>
+          <li class="login-button">
+            <a href="/frontend/login/dangnhap.html">LOGIN</a>
+          </li>
+          <li id="logoutItem" style="display: none">
+            <a href="#" id="logoutBtn" class="login-button">LOGOUT</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <br /><br /><br /><br />
+    <!-- khối thông báo  -->
+    <div class="modal" id="thongbaovitri">
+      <div class="modal-content">
+        <p>
+          Bạn có muốn cấp quyền truy cập vị trí? <br />
+          Chúng tôi sẽ giúp bạn tìm bãi đỗ xe gần nhất và tiện lợi nhất!
+        </p>
+        <button onclick="xuLyQuyenViTri(true)">Đồng ý</button>
+        <button onclick="xuLyQuyenViTri(false)">Không đồng ý</button>
+      </div>
+    </div>
+    <!-- khối tìm kiếm -->
+    <div class="search-bar" id="searchBar" style="display: none">
+      <input
+        type="text"
+        placeholder="Tìm bãi đỗ xe..."
+        oninput="filterParking(this.value)"
+      />
+    </div>
+
+    <div class="parking-container" id="parkingList"></div>
+    <!-- TIÊU ĐỀ + THỐNG KÊ -->
+    <div id="parkingHeader" class="parking-header" style="display: none">
+      <button
+        id="cancelModeBtn"
+        class="cancel-btn"
+        onclick="enableCancelMode()"
+      >
+        Hủy đặt chỗ
+      </button>
+
+      <h2 id="lotName" class="parking-title"></h2>
+      <!-- thống kê ô đỗ theo màu  -->
+      <div class="parking-summary">
+        <div>
+          <span class="legend-box free"></span>
+          Trống: <b id="freeSpots"></b>
+        </div>
+
+        <div>
+          <span class="legend-box pending"></span>
+          Chưa thanh toán: <b id="pendingSpots"></b>
+        </div>
+
+        <div>
+          <span class="legend-box paid"></span>
+          Đã đặt (đã thanh toán): <b id="paidSpots"></b>
+        </div>
+
+        <div>
+          <span class="legend-box occupied"></span>
+          Đang đỗ: <b id="occupiedSpots"></b>
+        </div>
+        <div>
+          <span class="legend-box temp-out"></span>
+          Ra tạm (còn hạn): <b id="tempOutSpots"></b>
+        </div>
+
+        <div>
+          <span class="legend-box total"></span>
+          Tổng: <b id="totalSpots"></b>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHU ĐỖ -->
+    <div class="parking-map-wrapper">
+      <div class="parking-map" id="parkingMap">
+        <!-- LANE TRÁI -->
+        <div class="lane vertical left"></div>
+
+        <div class="zones-wrapper" id="legend" style="display: none">
+          <div class="zone" id="zoneA-wrapper">
+            <h3>Khu A</h3>
+            <div class="spot-grid" id="zoneA"></div>
+          </div>
+
+          <div class="zone" id="zoneB-wrapper">
+            <h3>Khu B</h3>
+            <div class="spot-grid" id="zoneB"></div>
+          </div>
+        </div>
+
+        <!-- LANE PHẢI -->
+        <div class="lane vertical right"></div>
+      </div>
+    </div>
+
+    <div class="reserve-modal" id="reserveFormModal">
+      <div class="reserve-content">
+        <h3>🚗 Thông tin đặt chỗ</h3>
+
+        <div class="form-group">
+          <label>Biển số xe</label>
+          <input id="plateInput" placeholder="VD: 30A-12345" />
+        </div>
+
+        <div class="form-group">
+          <label>Số điện thoại</label>
+          <input id="phoneInput" placeholder="VD: 098xxxxxxx" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Giờ vào</label>
+            <input
+              type="datetime-local"
+              id="startTimeInput"
+              onchange="calculatePrice()"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Giờ ra</label>
+          <input
+            type="datetime-local"
+            id="endTimeInput"
+            onchange="calculatePrice()"
+          />
+        </div>
+
+        <div class="price-box">
+          💰 Tổng tiền:
+          <span id="totalPrice">0</span> VNĐ
+        </div>
+
+        <div class="reserve-actions">
+          <button class="btn-cancel" onclick="closeReserveForm()">Huỷ</button>
+          <button class="btn-confirm" onclick="confirmReserveInfo()">
+            Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- khối thông báo thanh toán khi đặt chỗ -->
+    <div class="payment-modal" id="paymentModal">
+      <div class="payment-modal-content">
+        <p>Hãy thanh toán trước 10 phút kể từ khi xác nhận thanh toán</p>
+        <button onclick="proceedToPayment()">Thanh toán ngay</button>
+        <button
+          onclick="document.getElementById('paymentModal').style.display = 'none'"
+        >
+          Chờ
+        </button>
+      </div>
+    </div>
+    <!-- modal huỷ đặt chỗ  -->
+    <div class="cancel-modal" id="cancelModal">
+      <div class="cancel-content">
+        <h3 class="cancel-title">Huỷ đặt chỗ</h3>
+
+        <p class="cancel-message" id="cancelMessage"></p>
+
+        <div class="cancel-actions">
+          <button class="btn-cancel" onclick="closeCancelModal()">Không</button>
+          <button class="btn-danger" id="confirmCancelBtn">Xác nhận huỷ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- chatbox -->
+    <div id="ai-chat-container"></div>
+
+    <!-- kết -->
+    <footer class="footer">
+      <div class="footer-container">
+        <!-- Cột trái -->
+        <div class="footer-column slide-in-left">
+          <p class="h1">
+            <span class="orange">SMART</span><span class="white">PARKING</span>
+          </p>
+          <p>
+            Smart parking management system helps manage parking lots quickly,
+            accurately, safely and economically.
+          </p>
+          <div class="social-icons">
+            <a href="https://www.facebook.com/?locale=vi_VN"
+              ><i class="fab fa-facebook-f"></i
+            ></a>
+            <a href="https://x.com/?lang=vi"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.youtube.com/?app=desktop&hl=vi"
+              ><i class="fab fa-youtube"></i
+            ></a>
+          </div>
+        </div>
+        <!-- Cột giữa -->
+        <div class="footer-column slide-in-up">
+          <h2>Management Company</h2>
+          <p><strong>LTT Solution Joint Stock Company</strong></p>
+          <p>
+            <i class="fas fa-map-marker-alt"></i> No. 235 Hoang Quoc Viet, Co
+            Nhue, Hanoi
+          </p>
+          <p><i class="fas fa-phone-alt"></i> 0375424626</p>
+          <p><i class="fas fa-envelope"></i> info@smartparking.vn</p>
+        </div>
+
+        <!-- Cột phải -->
+        <div class="footer-column slide-in-right">
+          <h2>Categories</h2>
+          <ul>
+            <li><a href="../introduce/index.html">Introduction</a></li>
+            <li><a href="/frontend/solutions/giaiphap.html">Solutions</a></li>
+            <li><a href="../contactus/contactus.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 • www.smartparking.vn</p>
+        <a href="/frontend/trangchu/index.html" class="back-to-top"
+          >Back to top</a
+        >
+      </div>
+    </footer>
+    <!-- ===== CẢNH BÁO HẾT GIỜ ===== -->
+    <div
+      id="expireWarning"
+      style="
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #dc2626;
+        color: white;
+        padding: 14px 22px;
+        border-radius: 8px;
+        font-weight: bold;
+        display: none;
+        z-index: 9999;
+      "
+    >
+      Chỗ đỗ sắp hết giờ: <span id="expireCountdown">30</span>s
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+
+    <script src="./pay.js"></script>
+
+    <script>
+      fetch("../ChatBotAI/chatbotAI.html")
+        .then((r) => r.text())
+        .then((html) => {
+          document.body.insertAdjacentHTML("beforeend", html);
+
+          const script = document.createElement("script");
+          script.src = "../ChatBotAI/chatbotAI.js";
+
+          script.onload = () => {
+            initChatbot();
+          };
+
+          document.body.appendChild(script);
+        });
+    </script>
+  </body>
+</html>
