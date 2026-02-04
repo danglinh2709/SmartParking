@@ -1,45 +1,16 @@
-const aiService = require("../services/aiChat.service");
-const { detectIntent } = require("../utils/intent.util");
+const aiChatService = require("../services/aiChat.service");
 
 exports.chat = async (req, res) => {
-  const { message } = req.body;
-  if (!message) return res.status(400).json({ reply: "Thiếu nội dung" });
+  try {
+    const { message } = req.body;
 
-  const intent = detectIntent(message);
-
-  //  Ngoài phạm vi
-  if (intent === "OTHER") {
-    return res.json({
-      reply: `Mình có thể hỗ trợ bạn về:
-              Các loại vé / sản phẩm
-              Cách đặt chỗ & thanh toán
-              Hủy vé – hoàn tiền
-
-              Bạn muốn hỏi mục nào?`,
-    });
+    if (!message) {
+      return res.status(400).json({ error: "Vui lòng nhập tin nhắn" });
+    }
+    const reply = await aiChatService.getChatResponse(message);
+    res.json({ reply: reply });
+  } catch (error) {
+    console.error("Lỗi Controller:", error);
+    res.status(500).json({ error: "Lỗi server nội bộ" });
   }
-
-  // Prompt kiểu Tép Thám Tử
-  const systemPrompt = `
-Bạn là trợ lý AI cho hệ thống SmartParking.
-
-CHỈ trả lời các nội dung:
-- Các loại vé gửi xe
-- Cách đặt chỗ
-- Cách thanh toán
-- Hủy vé – hoàn tiền
-
-Trả lời:
-- Ngắn gọn
-- Theo gạch đầu dòng
-- Luôn gợi ý câu hỏi tiếp theo
-- Không nói lan man
-`;
-
-  const reply = await aiService.chatWithAI([
-    { role: "system", content: systemPrompt },
-    { role: "user", content: message },
-  ]);
-
-  res.json({ reply });
 };

@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const chatController = require("../controllers/aiChat.controller");
-
-router.post("/", chatController.chat);
-
+const aiChatController = require("../controllers/aiChat.controller");
+router.post("/", aiChatController.chat);
 module.exports = router;

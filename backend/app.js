@@ -31,4 +31,6 @@ app.use("/api/chat", require("./routes/aiChat.route"));
 app.use("/public", express.static(path.join(__dirname, "public")));
 
 app.use("/frontend", express.static(path.join(__dirname, "../frontend")));
+const aiChatRoute = require('./routes/aiChat.route'); 
+app.use('/api/chat', aiChatRoute); 
 module.exports = app;

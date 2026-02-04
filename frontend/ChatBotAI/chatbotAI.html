@@ -1,41 +1,69 @@
-<link rel="stylesheet" href="../ChatBotAI/chatbotAI.css" />
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartParking Assistant</title>
+    <link rel="stylesheet" href="chatbotAI.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <button class="chatbot-toggler">
+      <span class="material-symbols-rounded"
+        ><i class="fa-solid fa-comment-dots"></i
+      ></span>
+      <span class="material-symbols-outlined"
+        ><i class="fa-solid fa-xmark"></i
+      ></span>
+    </button>
 
-<div id="ai-icon">🤖</div>
+    <div class="chatbot">
+      <header>
+        <h2>Hỗ trợ trực tuyến</h2>
+        <span class="close-btn"><i class="fa-solid fa-xmark"></i></span>
+      </header>
 
-<div id="ai-chatbox">
-  <div class="header">
-    <span>AI SmartParking</span>
-    <span class="close">✖</span>
-  </div>
-
-  <div id="chat-body">
-    <div class="msg ai">
-       <b>Xin chào!</b><br />
-      Tôi là trợ lý AI của <b>SmartParking</b>.<br />
-      Tôi có thể hỗ trợ bạn:
-      <ul>
-        <li> Thông tin <b>vé gửi xe</b></li>
-        <li> <b>Đặt chỗ & thanh toán</b></li>
-        <li> <b>Huỷ vé – hoàn tiền</b></li>
+      <ul class="chatbox" id="chat-content">
+        <li class="chat incoming">
+          <span class="material-symbols-outlined"
+            ><i class="fa-solid fa-robot"></i
+          ></span>
+          <p>Xin chào! Tôi có thể giúp gì cho bạn về bãi đỗ xe?</p>
+        </li>
       </ul>
-       Bạn muốn hỏi vấn đề nào?
+
+      <div class="suggestions">
+        <button onclick="sendSuggestion('Các loại vé gửi xe hiện có?')">
+          Các loại vé?
+        </button>
+        <button onclick="sendSuggestion('Cách đặt chỗ và thanh toán?')">
+          Cách đặt chỗ?
+        </button>
+        <button onclick="sendSuggestion('Chính sách hủy vé và hoàn tiền?')">
+          Hủy vé/Hoàn tiền
+        </button>
+      </div>
+
+      <div class="chat-input">
+        <textarea
+          id="chat-input"
+          placeholder="Nhập câu hỏi..."
+          spellcheck="false"
+          required
+        ></textarea>
+        <span id="send-btn" class="material-symbols-rounded"
+          ><i class="fa-solid fa-paper-plane"></i
+        ></span>
+      </div>
     </div>
-  </div>
 
-  <!-- câu hỏi gợi ý -->
-  <div class="quick">
-    <button data-q="Các loại vé gửi xe hiện có"> Vé gửi xe</button>
-    <button data-q="Cách đặt chỗ và thanh toán"> Đặt chỗ</button>
-    <button data-q="Hủy vé và hoàn tiền như thế nào"> Hủy vé</button>
-  </div>
-
-  <!-- ô nhập text -->
-  <div class="input">
-    <input id="chatInput" placeholder="Nhập câu hỏi của bạn..." />
-    <button id="sendBtn">Gửi</button>
-  </div>
-</div>
-
-
-  <script src="../ChatBotAI/chatbotAI.js"></script>
-</div>
+    <script src="chatbotAI.js"></script>
+  </body>
+</html>
