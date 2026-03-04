@@ -47,9 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
         toast("Đăng nhập thành công");
 
         if (data.role === "tenant") {
-          location.href = "/frontend/pay/pay.html";
+          location.href = "../pay/pay.html";
         } else if (data.role === "staff") {
-          location.href = "/frontend/login/chonbaido.html";
+          location.href = "../login/chonbaido.html";
         } else if (data.role === "manager") {
           location.href = "/frontend/manager/dashboard.html";
         }

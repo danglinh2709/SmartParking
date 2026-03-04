@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <title>Manager Dashboard</title>
 
-    <link rel="stylesheet" href="manager.css" />
-    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="../manager/manager.css" />
+    <link rel="stylesheet" href="../manager/dashboard.css" />
 
     <!-- Chart.js PHẢI LOAD TRƯỚC dashboard.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -32,17 +32,20 @@
 
       <!-- STAT CARDS -->
       <div class="stats">
-        <div class="stat-card" onclick="location.href='parking-lots.html'">
+        <div class="stat-card" onclick="location.href = 'parking-lots.html'">
           <p>Bãi đỗ</p>
           <h2 id="parkingCount">--</h2>
         </div>
 
-        <div class="stat-card" onclick="location.href='staff.html'">
+        <div class="stat-card" onclick="location.href = 'staff.html'">
           <p>Nhân viên</p>
           <h2 id="staffCount">--</h2>
         </div>
 
-        <div class="stat-card" onclick="location.href='contact-messages.html'">
+        <div
+          class="stat-card"
+          onclick="location.href = 'contact-messages.html'"
+        >
           <p>Tin nhắn</p>
           <h2 id="messageCount">--</h2>
         </div>
@@ -57,7 +60,7 @@
       </div>
     </div>
 
-    <script src="manager.js"></script>
-    <script src="dashboard.js"></script>
+    <script src="../manager/manager.js"></script>
+    <script src="../manager/dashboard.js"></script>
   </body>
 </html>
