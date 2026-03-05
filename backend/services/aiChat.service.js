@@ -34,18 +34,23 @@ Hãy trả lời câu hỏi của khách hàng dựa trên thông tin trên mộ
 async function getChatResponse(userMessage) {
   try {
     const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: KNOWLEDGE_BASE }, // Nạp kiến thức cho AI
+        { role: "system", content: KNOWLEDGE_BASE },
         { role: "user", content: userMessage },
       ],
-      model: "gpt-3.5-turbo",
     });
 
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error("Lỗi OpenAI Service:", error);
+    const status = error?.status || error?.response?.status;
+    console.error("Lỗi OpenAI Service:", status, error);
+
+    if (status === 429) {
+      return "Hệ thống AI đang quá tải / hết hạn mức. Bạn thử lại sau vài phút nhé.";
+    }
+
     return "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau.";
   }
 }
-
 module.exports = { getChatResponse };

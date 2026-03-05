@@ -8,7 +8,6 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
 
 app.use("/images", express.static(path.join(__dirname, "public/images")));
 
@@ -26,11 +25,9 @@ app.use("/api/tickets", require("./routes/ticket.routes"));
 app.use("/api/manager", require("./routes/manager.routes"));
 app.use("/api/checkin", require("./routes/checkin.routes"));
 app.use("/api/checkout", require("./routes/checkout.routes"));
-app.use("/api/chat", require("./routes/aiChat.route"));
 
 app.use("/public", express.static(path.join(__dirname, "public")));
 
 app.use("/frontend", express.static(path.join(__dirname, "../frontend")));
-const aiChatRoute = require('./routes/aiChat.route'); 
-app.use('/api/chat', aiChatRoute); 
+app.use("/api/chat", require("./routes/aiChat.route"));
 module.exports = app;
