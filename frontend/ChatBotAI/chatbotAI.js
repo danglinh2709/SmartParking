@@ -91,11 +91,6 @@ if (window.__chatbot_initialized__) {
     }, 600);
   };
 
-  function sendSuggestion(text) {
-    chatInput.value = text;
-    handleChat();
-  }
-
   chatInput.addEventListener("input", () => {
     chatInput.style.height = `${inputInitHeight}px`;
     chatInput.style.height = `${chatInput.scrollHeight}px`;

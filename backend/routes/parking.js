@@ -64,171 +64,53 @@ function calcFee(entryISO, exitDate = new Date()) {
 
 /* APIs */
 // xe đang trong bãi
+/**
+ * @swagger
+ * tags:
+ *   name: Vehicles
+ *   description: Quản lý xe ra vào bãi (Giao diện cũ/Truyền thống)
+ */
+
+/**
+ * @swagger
+ * /api/parking:
+ *   get:
+ *     summary: Danh sách xe đang đỗ trong bãi
+ *     tags: [Vehicles]
+ *     responses:
+ *       200:
+ *         description: Danh sách xe
+ */
 router.get("/", async (_req, res) => {
-  try {
-    const pool = await getPool();
-    const r = await pool
-      .request()
-      .query(
-        "SELECT * FROM VehicleEntry WHERE exit_time IS NULL ORDER BY entry_time DESC"
-      );
-    res.json(r.recordset);
-  } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ error: "Không lấy được danh sách xe", detail: err.message });
-  }
+// ... existing code ...
 });
 
-/* ===================== /in – xe vào bãi ===================== */
+/**
+ * @swagger
+ * /api/parking/in:
+ *   post:
+ *     summary: Đăng ký xe vào bãi (Kèm ảnh và biển số)
+ *     tags: [Vehicles]
+ *     responses:
+ *       200:
+ *         description: Xe vào thành công
+ */
 router.post("/in", upload.any(), async (req, res) => {
-  try {
-    const b = readBody(req);
-    const licensePlate = normalizePlate(b.licensePlate);
-    const parkingLotId = Number.parseInt(b.parkingLotId, 10);
-    const imageUrlEntry = pickImage(req, "imageEntry", "imageUrlEntry");
-
-    if (!licensePlate)
-      return res
-        .status(400)
-        .json({ error: "licensePlate không được để trống" });
-    if (!/^[0-9A-Z\-\.]{4,20}$/.test(licensePlate))
-      return res.status(400).json({ error: "Định dạng biển số không hợp lệ" });
-    if (!Number.isInteger(parkingLotId))
-      return res.status(400).json({ error: "parkingLotId không hợp lệ" });
-
-    const pool = await getPool();
-
-    // bãi có tồn tại và còn chỗ?
-    const lot = await pool
-      .request()
-      .input("parkingLotId", sql.Int, parkingLotId)
-      .query("SELECT * FROM ParkingLot WHERE id = @parkingLotId");
-    if (lot.recordset.length === 0)
-      return res.status(400).json({ error: "Bãi đỗ xe không tồn tại" });
-    if ((lot.recordset[0].available_spots ?? 0) <= 0)
-      return res.status(400).json({ error: "Bãi đỗ xe đã đầy" });
-
-    // xe đang đỗ chưa ra?
-    const dup = await pool
-      .request()
-      .input("license_plate", sql.NVarChar, licensePlate).query(`
-        SELECT TOP 1 id FROM VehicleEntry
-        WHERE license_plate = @license_plate AND exit_time IS NULL
-        ORDER BY entry_time DESC
-      `);
-    if (dup.recordset.length) {
-      return res
-        .status(409)
-        .json({ error: "Xe này đang ở trong bãi, chưa thể vào lần nữa" });
-    }
-
-    // thêm xe (KHÔNG dùng OUTPUT để né trigger)
-    const inserted = await pool
-      .request()
-      .input("license_plate", sql.NVarChar, licensePlate)
-      .input("parking_lot_id", sql.Int, parkingLotId)
-      .input("image_url_entry", sql.NVarChar(sql.MAX), imageUrlEntry).query(`
-        DECLARE @newId INT;
-        INSERT INTO VehicleEntry
-          (license_plate, parking_lot_id, entry_time, parking_lot_status, image_url_entry, parking_fee)
-        VALUES
-          (@license_plate, @parking_lot_id, GETDATE(), 'occupied', @image_url_entry, 0);
-        SET @newId = SCOPE_IDENTITY();
-        SELECT * FROM VehicleEntry WHERE id = @newId;
-      `);
-
-    // giảm chỗ trống của bãi
-    await pool
-      .request()
-      .input("parkingLotId", sql.Int, parkingLotId)
-      .query(
-        "UPDATE ParkingLot SET available_spots = available_spots - 1 WHERE id = @parkingLotId"
-      );
-
-    res.json({
-      ok: true,
-      message: "Xe đã vào bãi",
-      record: inserted.recordset[0],
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Lỗi thêm xe vào bãi",
-      detail: err.originalError?.info?.message || err.message,
-    });
-  }
+// ... existing code ...
 });
 
-/* ===================== /out – xe rời bãi ===================== */
+/**
+ * @swagger
+ * /api/parking/out:
+ *   post:
+ *     summary: Đăng ký xe ra bãi và tính phí
+ *     tags: [Vehicles]
+ *     responses:
+ *       200:
+ *         description: Xe ra thành công và thông tin phí
+ */
 router.post("/out", upload.any(), async (req, res) => {
-  try {
-    const b = readBody(req);
-    const licensePlate = normalizePlate(b.licensePlate);
-    const imageUrlExit = pickImage(req, "imageExit", "imageUrlExit");
-
-    if (!licensePlate)
-      return res
-        .status(400)
-        .json({ error: "licensePlate không được để trống" });
-
-    const pool = await getPool();
-
-    const v = await pool
-      .request()
-      .input("license_plate", sql.NVarChar, licensePlate).query(`
-        SELECT TOP 1 * FROM VehicleEntry
-        WHERE license_plate = @license_plate AND exit_time IS NULL
-        ORDER BY entry_time DESC
-      `);
-    if (v.recordset.length === 0)
-      return res.status(404).json({ error: "Xe không tồn tại hoặc đã ra bãi" });
-
-    const vehicle = v.recordset[0];
-    const parkingLotId = vehicle.parking_lot_id;
-    const now = new Date();
-    const fee = calcFee(vehicle.entry_time, now);
-
-    // cập nhật
-    const updated = await pool
-      .request()
-      .input("id", sql.Int, vehicle.id)
-      .input("exit_time", sql.DateTime, now)
-      .input("parking_lot_status", sql.NVarChar, "vacant")
-      .input("image_url_exit", sql.NVarChar(sql.MAX), imageUrlExit)
-      .input("parking_fee", sql.Int, fee).query(`
-        UPDATE VehicleEntry
-        SET exit_time = @exit_time,
-            parking_lot_status = @parking_lot_status,
-            image_url_exit = @image_url_exit,
-            parking_fee = @parking_fee
-        WHERE id = @id;
-        SELECT * FROM VehicleEntry WHERE id = @id;
-      `);
-
-    // tăng chỗ trống của bãi
-    await pool
-      .request()
-      .input("parkingLotId", sql.Int, parkingLotId)
-      .query(
-        "UPDATE ParkingLot SET available_spots = available_spots + 1 WHERE id = @parkingLotId"
-      );
-
-    res.json({
-      ok: true,
-      message: "Xe đã rời bãi",
-      fee,
-      exit_time: now.toISOString(),
-      record: updated.recordset[0],
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Lỗi cập nhật xe ra bãi",
-      detail: err.originalError?.info?.message || err.message,
-    });
-  }
+// ... existing code ...
 });
 
 module.exports = router;

@@ -86,7 +86,9 @@ nav ul li a:hover {
   padding: 10px 20px;
   color: black;
   text-decoration: none;
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 .dropdown-content a:hover {
@@ -157,7 +159,9 @@ nav ul li a:hover {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   cursor: pointer;
 }
 .parking-card img {
@@ -327,7 +331,9 @@ nav ul li a:hover {
   border-radius: 6px;
   font-size: 14px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+  animation:
+    slideIn 0.3s ease,
+    fadeOut 0.3s ease 2.7s;
 }
 
 @keyframes slideIn {
@@ -574,7 +580,9 @@ nav ul li a:hover {
   margin: 0 10px;
   font-size: 24px;
   color: white;
-  transition: transform 0.3s ease, color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
 }
 
 .social-icons a:hover {
@@ -587,7 +595,9 @@ nav ul li a:hover {
   font-size: 20px;
   margin-right: 10px;
   cursor: pointer;
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .footer-column p i:hover {
@@ -614,113 +624,165 @@ nav ul li a:hover {
 /* ===== MAP WRAPPER ===== */
 .parking-map-wrapper {
   width: 100%;
-  background: linear-gradient(#f9fafb, #f3f4f6);
-  border-radius: 18px;
-  padding: 30px 20px;
+  max-width: 100%; /* Đảm bảo không vượt quá chiều ngang màn hình */
+  background: #252a34;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+  margin-top: 20px;
+  overflow: hidden; /* Ngăn tràn ra ngoài viền đen */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ===== MAP ===== */
 .parking-map {
   display: flex;
   align-items: stretch;
-  gap: 40px;
-  min-width: 1200px;
+  gap: 30px;
+  max-width: 100%; /* Không bao giờ rộng hơn wrapper */
+  overflow-x: auto; /* Cuộn ngang bên TRONG viền đen */
   position: relative;
+  background: #333;
+  border-radius: 12px;
+  padding: 30px;
+  border: 4px solid #444;
 }
 
 /* ===== LANE XE ===== */
 .lane {
-  width: 90px;
-  background: repeating-linear-gradient(
-    to bottom,
-    #9ca3af,
-    #9ca3af 18px,
-    #f3f4f6 18px,
-    #f3f4f6 36px
-  );
-  border-radius: 14px;
+  width: 100px;
+  background: #333;
+  border-left: 2px dashed rgba(255,255,255,0.3);
+  border-right: 2px dashed rgba(255,255,255,0.3);
   position: relative;
-  box-shadow: inset 0 0 0 2px #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.lane::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 0;
+  border-left: 2px solid #ffcc00; /* Yellow line */
 }
 
 .lane::after {
-  content: "⬆  HƯỚNG XE";
+  content: "ENTRY ⬆";
   position: sticky;
   top: 20px;
-  display: block;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #111827;
+  background: #ffcc00;
+  color: #000;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  z-index: 5;
 }
 
 .lane.right::after {
-  content: "⬇";
-  top: auto;
-  bottom: 12px;
+  content: "EXIT ⬇";
 }
 
 /* ===== ZONE ===== */
 .zones-wrapper {
   display: flex;
-  gap: 60px;
+  gap: 100px;
 }
 
 .zone {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 20px;
 }
 
 .zone h3 {
-  background: #111827;
-  color: white;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 14px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 16px;
+  border-left: 4px solid #007bff;
+  text-transform: uppercase;
 }
+
 /* ===== SPOT GRID ===== */
 .spot-grid {
   display: grid;
-  grid-template-columns: repeat(10, 56px);
-  gap: 14px 18px;
+  grid-template-columns: repeat(auto-fit, 65px); /* Tự động xuống dòng nếu thiếu chỗ */
+  min-width: 350px; /* Tối thiểu cho một khu */
+  gap: 15px 20px;
 }
 
 /* ===== SPOT ===== */
 .spot {
-  width: 56px; /* nhỏ hơn */
-  height: 96px; /* giống xe thật */
-  border-radius: 8px;
-  background: #22c55e;
+  width: 65px;
+  height: 110px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-weight: bold;
+  justify-content: flex-end;
+  padding-bottom: 8px;
   cursor: pointer;
-  transition: 0.15s;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.spot i {
+  font-size: 32px;
+  margin-bottom: 10px;
+  transition: transform 0.3s ease;
 }
 
 .spot:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  border-color: #007bff;
+  background: rgba(0,123,255,0.1);
+  transform: translateY(-2px);
 }
 
-/* ===== LABEL ===== */
 .spot-number {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  font-weight: bold;
 }
 
-/* ===== COUNTDOWN ===== */
-.countdown {
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(253, 253, 253, 0.35);
-  padding: 3px 8px;
-  border-radius: 8px;
+/* Trạng thái đỗ */
+.spot.free {
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+.spot.free:hover {
+  background: rgba(46,204,113,0.1);
+}
+
+.spot.parking {
+  background: rgba(244,67,54,0.15);
+  border-color: #f44336;
+  color: #f44336;
+}
+
+.spot.paid {
+  background: rgba(158,158,158,0.15);
+  border-color: #9e9e9e;
+  color: #9e9e9e;
+}
+
+.spot.pending {
+  background: rgba(255,193,7,0.15);
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.spot.temp-out {
+  background: rgba(255,152,0,0.15);
+  border-color: #ff9800;
+  color: #ff9800;
 }
 
 /* ===== MOBILE ===== */
@@ -797,7 +859,103 @@ nav ul li a:hover {
   animation: fadeIn 0.2s ease-in-out;
 }
 
-/* ===== MODAL BOX ===== */
+/* ===== RESPONSIVE ADJUSTMENTS FOR PAY PAGE ===== */
+@media (max-width: 1200px) {
+  .parking-map-wrapper {
+    overflow-x: auto;
+    padding: 20px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 0 !important; /* Reset body padding for mobile */
+  }
+
+  .search-bar {
+    padding: 80px 10px 10px !important;
+  }
+
+  .search-bar input {
+    width: 90% !important;
+  }
+
+  .parking-container {
+    padding: 20px 10px !important;
+    gap: 15px !important;
+  }
+
+  .parking-card {
+    width: calc(100% - 20px) !important;
+    max-width: 350px;
+  }
+
+  .parking-header {
+    padding: 0 15px;
+  }
+
+  .parking-title {
+    font-size: 22px !important;
+  }
+
+  .parking-summary {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: flex-start !important;
+  }
+
+  .cancel-btn {
+    position: static !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+  }
+
+  .spot-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 15px !important;
+  }
+
+  .spot {
+    width: 60px !important;
+    height: 100px !important;
+  }
+
+  .spot i {
+    font-size: 24px;
+  }
+
+  .reserve-content {
+    width: 95% !important;
+    padding: 20px !important;
+  }
+
+  .footer {
+    padding: 30px 15px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .spot-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .spot {
+    width: 100% !important;
+    height: 90px !important;
+  }
+
+  .spot i {
+    font-size: 20px;
+  }
+
+  .zones-wrapper {
+    flex-direction: column !important;
+    gap: 40px !important;
+  }
+}
 .cancel-content {
   background: #ffffff;
   width: 380px;

@@ -1,50 +1,7 @@
-// const poolPromise = require("../models/db");
-// const reservationModel = require("../models/reservation.model");
-// const parkingSpotModel = require("../models/parkingSpot.model");
-// const parkingLotModel = require("../models/parkingLot.model");
-
-// exports.payReservation = async ({ ticket }) => {
-//   if (!ticket) {
-//     throw { status: 400, message: "Thiếu ticket" };
-//   }
-
-//   /* ========= 1. KIỂM TRA VÉ ========= */
-//   const reservation = await reservationModel.getPending(ticket);
-
-//   if (!reservation) {
-//     throw {
-//       status: 400,
-//       message: "Vé không hợp lệ hoặc đã thanh toán",
-//     };
-//   }
-
-//   /* ========= 2. TRANSACTION ========= */
-//   const pool = await poolPromise;
-//   const tx = pool.transaction();
-//   await tx.begin();
-
-//   try {
-//     // 2.1 Đổi vé sang PAID
-//     await reservationModel.markPaid(tx, ticket);
-
-//     // 2.2 Gán reservation vào spot
-//     await parkingSpotModel.assignReservation(tx, ticket);
-
-//     // 2.3 Trừ chỗ
-//     await parkingLotModel.decreaseAvailableTx(tx, reservation.parking_lot_id);
-
-//     await tx.commit();
-//   } catch (err) {
-//     await tx.rollback();
-//     throw err;
-//   }
-
-//   return { msg: "Thanh toán thành công" };
-// };
-
 const reservationModel = require("../models/reservation.model");
 const { createPaymentUrl } = require("./vnpay.service");
 const poolPromise = require("../models/db");
+const { calculateDynamicPrice } = require("../utils/pricing.util");
 
 exports.payReservation = async ({ ticket }, ip) => {
   if (!ticket) throw { status: 400, message: "Thiếu ticket" };
@@ -61,8 +18,19 @@ exports.payReservation = async ({ ticket }, ip) => {
   if (!Number.isFinite(hours) || hours <= 0)
     throw { status: 400, message: "Thời gian gửi xe không hợp lệ" };
 
-  const PRICE_PER_HOUR = 10000;
-  const amount = hours * PRICE_PER_HOUR;
+  const pool = await poolPromise;
+
+  // Lấy thông tin bãi đỗ hiện tại để tính giá động
+  const lotRes = await pool.request().input("id", reservation.parking_lot_id)
+    .query(`
+    SELECT total_spots, available_spots FROM ParkingLot WHERE id = @id
+  `);
+  const lot = lotRes.recordset[0];
+  const currentPricePerHour = lot
+    ? calculateDynamicPrice(lot.total_spots, lot.available_spots)
+    : 10000;
+
+  const amount = hours * currentPricePerHour;
 
   const { paymentUrl, vnp_TxnRef } = createPaymentUrl({
     ticket,
@@ -70,7 +38,6 @@ exports.payReservation = async ({ ticket }, ip) => {
     ip,
   });
 
-  const pool = await poolPromise;
   await pool
     .request()
     .input("ticket", ticket)

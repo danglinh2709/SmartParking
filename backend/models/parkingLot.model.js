@@ -1,4 +1,5 @@
 const poolPromise = require("./db");
+const { calculateDynamicPrice } = require("../utils/pricing.util");
 
 exports.getActiveLots = async () => {
   const pool = await poolPromise;
@@ -14,7 +15,13 @@ exports.getActiveLots = async () => {
     FROM ParkingLot
     WHERE IsActive = 1
   `);
-  return res.recordset;
+
+  const lots = res.recordset.map((lot) => ({
+    ...lot,
+    current_price: calculateDynamicPrice(lot.total_spots, lot.available_spots),
+  }));
+
+  return lots;
 };
 
 exports.create = async (tx, { name, total_spots, image_url, lat, lng }) => {

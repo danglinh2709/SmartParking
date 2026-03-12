@@ -13,6 +13,27 @@ window.addEventListener("scroll", () => {
   lastScroll = currentScroll;
 });
 
+// Logic menu mobile
+const menuToggle = document.getElementById("mobile-menu");
+const navMenu = document.getElementById("nav-menu");
+
+if (menuToggle && navMenu) {
+  menuToggle.addEventListener("click", () => {
+    navMenu.classList.toggle("active");
+    menuToggle.classList.toggle("is-active");
+  });
+}
+
+// Handle mobile dropdowns
+const dropdowns = document.querySelectorAll(".dropdown");
+dropdowns.forEach((dropdown) => {
+  dropdown.addEventListener("click", () => {
+    if (window.innerWidth <= 1024) {
+      dropdown.classList.toggle("active");
+    }
+  });
+});
+
 // hiệu ứng cuộn trang
 window.addEventListener("scroll", function () {
   document

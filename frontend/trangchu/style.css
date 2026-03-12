@@ -946,3 +946,110 @@ section img {
 .footer-column.slide-in-up.active {
   animation: fadeInUp 1s ease forwards;
 }
+
+/* ===== RESPONSIVE STYLE FOR HOMEPAGE ===== */
+@media (max-width: 1024px) {
+  .slider {
+    height: 500px;
+  }
+
+  .text-overlay h1 {
+    font-size: 1.5em;
+  }
+
+  .text-overlay p {
+    font-size: 1em;
+    padding: 0 10px;
+  }
+
+  .btn-group .btn {
+    padding: 10px 40px;
+  }
+
+  .mohinh {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 20px;
+  }
+
+  .anh:nth-child(n) {
+    margin: 0 !important;
+  }
+
+  .anh.tall,
+  .anh.small {
+    height: 180px;
+  }
+
+  .solution-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .gth {
+    flex-direction: column;
+    padding: 20px;
+    align-items: center;
+  }
+
+  .gioithieu {
+    margin: 40px 0;
+    padding: 25px;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .gth img {
+    width: 90%;
+    height: auto;
+    margin-top: 20px;
+  }
+
+  .banggoi {
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 30px;
+  }
+
+  .goi {
+    width: 100%;
+    height: auto;
+    padding-bottom: 20px;
+  }
+
+  .mohinh {
+    grid-template-columns: 1fr;
+  }
+
+  .solution-grid {
+    grid-template-columns: 1fr;
+    padding: 0 15px;
+  }
+
+  .boch1 {
+    margin: 40px -20px 30px !important;
+    padding: 15px;
+  }
+
+  .nd .a {
+    width: 100% !important;
+    margin: 10px 0;
+  }
+
+  .footer {
+    padding: 40px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-overlay h1 {
+    font-size: 1.2em;
+  }
+
+  .btn-group .btn {
+    width: 90%;
+    margin: 8px 0;
+    padding: 10px 20px;
+    font-size: 1em;
+  }
+}

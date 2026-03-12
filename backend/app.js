@@ -3,6 +3,11 @@ const cors = require("cors");
 const path = require("path");
 
 const app = express();
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
+
+// ===== SWAGGER =====
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ===== MIDDLEWARE =====
 app.use(cors());

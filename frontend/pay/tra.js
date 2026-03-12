@@ -68,51 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* ================= PAY ================= */
-//   window.payNow = async function () {
-//     try {
-//       const hours = localStorage.getItem("parking_hours");
-
-//       if (!hours) {
-//         alert("Thiếu thời gian gửi xe, vui lòng đặt chỗ lại");
-//         return;
-//       }
-
-//       const res = await fetch(`${API}/payment`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${token}`,
-//         },
-//         body: JSON.stringify({
-//           ticket,
-//           hours: Number(hours),
-//         }),
-//       });
-
-//       const data = await res.json();
-
-//       if (res.status === 401) {
-//         alert(data.msg || "🔒 Vui lòng đăng nhập lại");
-//         localStorage.removeItem("sp_token");
-//         window.location.href = "/frontend/login/dangnhap.html";
-//         return;
-//       }
-
-//       if (!res.ok) {
-//         alert(data.msg || " Thanh toán thất bại");
-//         return;
-//       }
-
-//       alert("Thanh toán thành công!");
-
-//       window.location.href = `/frontend/ticket/ticket.html?ticket=${ticket}`;
-//     } catch (err) {
-//       console.error(err);
-//       alert(" Không thể kết nối server");
-//     }
-//   };
-// });
 window.payNow = function () {
   const countdown = document.getElementById("countdown")?.textContent;
   if (countdown === "00:00") {
@@ -191,7 +146,7 @@ window.selectPayment = async function (method) {
         "STK: 037 542 4626\n" +
         "Chủ TK: SMART PARKING\n" +
         "Nội dung: " +
-        ticket
+        ticket,
     );
   }
 };

@@ -4,22 +4,22 @@ let selectedLotId = null;
 let selectedSpotNumber = null;
 let currentLotId = null;
 let currentTotalSpots = null;
-// const parkingCountdowns = {};
 let cancelMode = false;
 
+/**
+ * Kiểm tra xem người dùng đã đăng nhập hay chưa dựa trên token trong localStorage
+ * @returns {boolean} True nếu đã đăng nhập, ngược lại false
+ */
 function isLoggedIn() {
   const token = localStorage.getItem("sp_token");
   return token && token !== "null" && token !== "undefined";
 }
-// function getSpotState(spot) {
-//   return localStorage.getItem(`spot_state_${spot}`);
-// }
-
-// function setSpotState(spot, state) {
-//   localStorage.setItem(`spot_state_${spot}`, state);
-// }
 
 /* ================= LOAD TRANG ================= */
+/**
+ * Hàm khởi tạo khi trang web được tải xong
+ * Hiển thị modal yêu cầu vị trí và tải dữ liệu bãi đỗ từ server
+ */
 window.onload = async () => {
   const modal = document.getElementById("thongbaovitri");
   if (modal) modal.style.display = "flex";
@@ -34,12 +34,19 @@ window.onload = async () => {
 };
 
 /* ================= MODAL VỊ TRÍ ================= */
+/**
+ * Hiển thị thanh tìm kiếm bãi đỗ xe khi người dùng đóng modal thông báo
+ */
 function yeucautruycapvitri() {
   document.getElementById("thongbaovitri").style.display = "none";
   document.getElementById("searchBar").style.display = "block";
 }
 
 /* ================= DANH SÁCH BÃI ================= */
+/**
+ * Hiển thị danh sách các bãi đỗ xe lên giao diện người dùng
+ * @param {Array} list Danh sách đối tượng bãi đỗ xe
+ */
 function renderParkingList(list) {
   const container = document.getElementById("parkingList");
   container.innerHTML = "";
@@ -58,24 +65,40 @@ function renderParkingList(list) {
   <img src="http://localhost:5000${lot.image_url}" />
   <p class="lot-name"><b>${lot.name}</b></p>
   <p class="total-slot">Tổng chỗ: ${lot.total_spots}</p>
+  <p class="current-price" style="color: #ff6600; font-weight: bold;">Giá hiện tại: ${(lot.current_price || 10000).toLocaleString("vi-VN")} đ/h</p>
 `;
 
-    card.onclick = () => showSpots(lot.id, lot.total_spots);
+    card.onclick = () => {
+      // Lưu giá hiện tại của bãi này để dùng khi tính tiền
+      window.selectedLotPrice = lot.current_price || 10000;
+      showSpots(lot.id, lot.total_spots);
+    };
     container.appendChild(card);
   });
 }
 
 /* ================= TÌM KIẾM ================= */
+/**
+ * Lọc danh sách bãi đỗ xe dựa trên từ khóa người dùng nhập vào
+ * @param {string} value Từ khóa tìm kiếm
+ */
 function filterParking(value) {
   const keyword = value.toLowerCase().trim();
   if (!keyword) return renderParkingList(baidoDangHienThi);
 
   renderParkingList(
-    baidoDangHienThi.filter((b) => b.name.toLowerCase().includes(keyword))
+    baidoDangHienThi.filter((b) => b.name.toLowerCase().includes(keyword)),
   );
 }
+
+// Chuẩn hóa thời gian
+/**
+ * Chuẩn hóa chuỗi thời gian từ cơ sở dữ liệu sang dạng timestamp
+ * @param {string} sqlDateTime Chuỗi thời gian định dạng ISO/SQL
+ * @returns {number} Timestamp (milliseconds)
+ */
 function parseLocalDateTime(sqlDateTime) {
-  // Chuẩn hoá: "2025-12-26T13:37:00.000Z" → "2025-12-26 13:37:00"
+  // Chuẩn hoá: "2025-12-26T13:37:00.000Z" => "2025-12-26 13:37:00"
   const clean = sqlDateTime.replace("T", " ").replace("Z", "").split(".")[0];
 
   const [date, time] = clean.split(" ");
@@ -86,6 +109,11 @@ function parseLocalDateTime(sqlDateTime) {
 }
 
 /* ================= HIỂN THỊ CHỖ ================= */
+/**
+ * Hiển thị chi tiết các ô đỗ của một bãi đỗ xe cụ thể
+ * @param {number} parkingLotId ID của bãi đỗ xe
+ * @param {number} totalSpots Tổng số ô đỗ trong bãi
+ */
 async function showSpots(parkingLotId, totalSpots) {
   document.getElementById("parkingList").style.display = "none";
   document.getElementById("searchBar").style.display = "none";
@@ -94,9 +122,6 @@ async function showSpots(parkingLotId, totalSpots) {
 
   const lot = baidoDangHienThi.find((b) => b.id === parkingLotId);
   document.getElementById("lotName").textContent = lot?.name || "";
-
-  //  ticket của người dùng hiện tại
-  // const myTicket = localStorage.getItem("parking_ticket");
 
   // ===== FETCH STATUS TỪ BACKEND =====
   const token = localStorage.getItem("sp_token");
@@ -140,23 +165,19 @@ async function showSpots(parkingLotId, totalSpots) {
   for (let i = 1; i <= totalSpots; i++) {
     const spot = document.createElement("div");
     spot.className = "spot";
-    spot.textContent = i;
-
-    // const info = spotMap[i] || { status: "FREE", ticket: null };
+    
     const info = spotMap[i] || { status: "FREE", isMine: false };
-
     const status = info.status;
-    // const ticket = info.ticket;
 
-    /* ========= TRẠNG THÁI ========= */
-
+    let iconHtml = "";
     if (status === "OCCUPIED") {
       spot.classList.add("parking");
+      iconHtml = '<i class="fas fa-car"></i>';
       occupiedCount++;
     } else if (status === "TEMP_OUT") {
       spot.classList.add("temp-out");
+      iconHtml = '<i class="fas fa-running"></i>';
       tempOutCount++;
-
       if (info.isMine) {
         spot.style.cursor = "pointer";
         spot.onclick = () => {
@@ -164,26 +185,21 @@ async function showSpots(parkingLotId, totalSpots) {
           localStorage.setItem("spot_number", i);
           window.location.href = "/frontend/checkin/index.html";
         };
-      } else {
-        spot.style.cursor = "not-allowed";
       }
     } else if (status === "PAID") {
       spot.classList.add("paid");
+      iconHtml = '<i class="fas fa-check-circle"></i>';
       paidCount++;
       if (cancelMode) {
         spot.classList.add("cancelable");
-        spot.style.cursor = "pointer";
-        spot.onclick = () => {
-          confirmCancel(parkingLotId, i, "PAID");
-        };
+        spot.onclick = () => confirmCancel(parkingLotId, i, "PAID");
       }
     } else if (status === "PENDING") {
       spot.classList.add("pending");
+      iconHtml = '<i class="fas fa-clock"></i>';
       pendingCount++;
-
       if (cancelMode) {
         spot.classList.add("cancelable");
-        spot.style.cursor = "pointer";
         spot.onclick = () => confirmCancel(parkingLotId, i, "PENDING");
       } else if (info.isMine) {
         spot.style.cursor = "pointer";
@@ -192,11 +208,10 @@ async function showSpots(parkingLotId, totalSpots) {
           localStorage.setItem("spot_number", i);
           document.getElementById("paymentModal").style.display = "flex";
         };
-      } else {
-        spot.style.cursor = "not-allowed";
       }
     } else {
       spot.classList.add("free");
+      iconHtml = '<i class="fas fa-plus"></i>';
       freeCount++;
       spot.onclick = () => {
         if (!isLoggedIn()) {
@@ -208,8 +223,10 @@ async function showSpots(parkingLotId, totalSpots) {
       };
     }
 
+    spot.innerHTML = `${iconHtml}<span class="spot-number">${i}</span>`;
     (i <= half ? zoneA : zoneB).appendChild(spot);
   }
+
   // ===== HEADER =====
   document.getElementById("tempOutSpots").textContent = tempOutCount;
 
@@ -221,6 +238,11 @@ async function showSpots(parkingLotId, totalSpots) {
 }
 
 // ==================
+/**
+ * Mở form nhập thông tin để khách hàng thực hiện đặt chỗ
+ * @param {number} lotId ID bãi đỗ
+ * @param {number} spotNumber Số hiệu ô đỗ
+ */
 function openReserveForm(lotId, spotNumber) {
   selectedLotId = lotId;
   selectedSpotNumber = spotNumber;
@@ -235,11 +257,19 @@ function openReserveForm(lotId, spotNumber) {
   document.getElementById("reserveFormModal").style.display = "flex";
 }
 
+/**
+ * Đóng form đặt chỗ đỗ xe
+ */
 function closeReserveForm() {
   document.getElementById("reserveFormModal").style.display = "none";
 }
 
 // tiếp tục thanh toán
+/**
+ * Lưu thông tin ô đỗ vào localStorage và chuyển đến trang thanh toán
+ * @param {number} parkingLotId
+ * @param {number} spotNumber
+ */
 function continuePayment(parkingLotId, spotNumber) {
   if (!isLoggedIn()) {
     alert(" Vui lòng đăng nhập để tiếp tục thanh toán");
@@ -254,6 +284,9 @@ function continuePayment(parkingLotId, spotNumber) {
 }
 
 /* ================= ĐẶT CHỖ ================= */
+/**
+ * Gửi thông tin đặt chỗ lên máy chủ sau khi người dùng xác nhận form
+ */
 async function confirmReserveInfo() {
   if (!isLoggedIn()) {
     alert(" Vui lòng đăng nhập để đặt chỗ");
@@ -274,7 +307,7 @@ async function confirmReserveInfo() {
   }
 
   const hours = Math.ceil(
-    (new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60)
+    (new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60),
   );
 
   localStorage.setItem("parking_hours", hours);
@@ -316,12 +349,19 @@ async function confirmReserveInfo() {
 }
 
 /* ================= THANH TOÁN ================= */
+/**
+ * Chuyển hướng người dùng đến trang thanh toán chính thức
+ */
 function proceedToPayment() {
   document.getElementById("paymentModal").style.display = "none";
   window.location.href = "tra.html";
 }
 
 // ================ GPS ====================
+/**
+ * Xử lý yêu cầu truy cập vị trí của người dùng và tìm bãi đỗ gần nhất
+ * @param {boolean} granted Trạng thái đồng ý hay không
+ */
 function xuLyQuyenViTri(granted) {
   document.getElementById("thongbaovitri").style.display = "none";
   document.getElementById("searchBar").style.display = "block";
@@ -369,17 +409,20 @@ function xuLyQuyenViTri(granted) {
       renderParkingList([nearestLot]);
 
       showToast(
-        `📍 Bãi đỗ gần nhất: ${nearestLot.name} (~${minDistance.toFixed(2)} km)`
+        `📍 Bãi đỗ gần nhất: ${nearestLot.name} (~${minDistance.toFixed(2)} km)`,
       );
     },
     () => {
       alert("Không thể truy cập vị trí");
       renderParkingList(baidoDangHienThi);
-    }
+    },
   );
 }
 
 // Hàm tính khoảng cách giữa hai tọa độ (theo km)
+/**
+ * Tính khoảng cách giữa hai điểm tọa độ theo công thức Haversine (đơn vị: km)
+ */
 function tinhKhoangCach(lat1, lon1, lat2, lon2) {
   if (!lat2 || !lon2) return Infinity;
 
@@ -398,9 +441,11 @@ function tinhKhoangCach(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-/* ===== GIÁ THEO GIỜ ===== */
-const PRICE_PER_HOUR = 10000;
+/* ===== GIÁ THEO GIỜ (ĐÃ CHUYỂN SANG DÙNG GIÁ ĐỘNG TỪ BÃI ĐỖ) ===== */
 
+/**
+ * Tự động tính toán tổng tiền dựa trên giờ vào và giờ ra người dùng chọn
+ */
 function calculatePrice() {
   const startInput = document.getElementById("startTimeInput");
   const endInput = document.getElementById("endTimeInput");
@@ -422,92 +467,34 @@ function calculatePrice() {
   const diffMs = end - start;
   const hours = Math.ceil(diffMs / (1000 * 60 * 60));
 
-  const total = hours * PRICE_PER_HOUR;
+  const currentRate = window.selectedLotPrice || 10000;
+  const total = hours * currentRate;
   priceEl.textContent = total.toLocaleString("vi-VN");
+
+  // Cập nhật nhãn giá hiển thị trong form
+  const priceLabel = document.querySelector(".price-box");
+  if (priceLabel) {
+    priceLabel.innerHTML = `💰 Tổng tiền (tạm tính: ${currentRate.toLocaleString("vi-VN")} đ/h): <span id="totalPrice">${total.toLocaleString("vi-VN")}</span> VNĐ`;
+  }
 }
 
 // ================= COUNTDOWN TIMER =================
 const GRACE_PERIOD = 60 * 1000; // 1 phút
-// const expiredToastShown = new Set();
-// const freedToastShown = new Set();
-
-// setInterval(() => {
-//   const now = Date.now();
-
-//   Object.entries(parkingCountdowns).forEach(([spot, time]) => {
-//     const el = document.getElementById(`cd-${spot}`);
-//     const box = el?.closest(".spot");
-//     if (!el || !box) return;
-
-//     const { start, end } = time;
-//     const freeAt = end + GRACE_PERIOD;
-
-//     let newState = "";
-
-//     /*  CHƯA ĐẾN GIỜ */
-//     if (now < start) {
-//       const wait = Math.floor((start - now) / 1000);
-//       el.textContent = `⏳ ${Math.floor(wait / 60)}:${String(
-//         wait % 60
-//       ).padStart(2, "0")}`;
-//       box.className = "spot pending";
-//       newState = "PENDING";
-//     } else if (now >= start && now < end) {
-//       /* 🔴 ĐANG ĐỖ */
-//       const remain = Math.floor((end - now) / 1000);
-//       el.textContent = `${Math.floor(remain / 60)}:${String(
-//         remain % 60
-//       ).padStart(2, "0")}`;
-//       box.className = "spot parking";
-//       if (remain <= 300) box.classList.add("warning");
-//       newState = "PARKING";
-//     } else if (now >= end && now < freeAt) {
-//       /* ⛔ HẾT GIỜ */
-//       el.textContent = " Hết giờ";
-//       box.className = "spot expired";
-//       newState = "EXPIRED";
-//     } else if (now >= freeAt) {
-//       /* 🟢 GIẢI PHÓNG */
-//       el.remove();
-//       box.className = "spot free";
-//       box.onclick = () => {
-//         if (!isLoggedIn()) {
-//           alert(" Vui lòng đăng nhập để đặt chỗ");
-//           window.location.href = "/frontend/login/dangnhap.html";
-//           return;
-//         }
-//         openReserveForm(currentLotId, Number(spot));
-//       };
-//       newState = "FREE";
-//       delete parkingCountdowns[spot];
-//     }
-
-//     //  SO SÁNH STATE
-//     const oldState = getSpotState(spot);
-
-//     if (oldState !== newState) {
-//       if (newState === "EXPIRED") {
-//         showToast(`⛔ Chỗ ${spot} đã hết giờ`);
-//       }
-
-//       if (newState === "FREE") {
-//         showToast(`🟢 Chỗ ${spot} đã được giải phóng`);
-//       }
-
-//       setSpotState(spot, newState);
-//     }
-//   });
-// }, 1000);
 
 /* ================= HUỶ CHẾ ĐỘ ================= */
+/**
+ * Bật chế độ hủy đặt chỗ cho phép người dùng chọn các ô đã đặt để hủy
+ */
 function enableCancelMode() {
   cancelMode = true;
   showToast("Chọn ô đã đặt để huỷ");
-  // highlightCancelableSpots();
 
   showSpots(currentLotId, currentTotalSpots);
 }
 
+/**
+ * Hiển thị popup xác nhận việc hủy đặt chỗ
+ */
 function confirmCancel(lotId, spotNumber, status) {
   cancelTarget = { lotId, spotNumber };
 
@@ -526,11 +513,17 @@ function confirmCancel(lotId, spotNumber, status) {
   };
 }
 
+/**
+ * Đóng popup xác nhận hủy đặt chỗ
+ */
 function closeCancelModal() {
   document.getElementById("cancelModal").style.display = "none";
   cancelTarget = null;
 }
 
+/**
+ * Gửi yêu cầu hủy đặt chỗ lên server và xử lý kết quả trả về
+ */
 async function cancelReservation(parkingLotId, spotNumber) {
   try {
     const res = await fetch(`${API}/reservations/cancel`, {
@@ -551,7 +544,7 @@ async function cancelReservation(parkingLotId, spotNumber) {
     showToast(
       data.refunded
         ? "Huỷ thành công – đã hoàn tiền"
-        : "Huỷ thành công – không hoàn tiền"
+        : "Huỷ thành công – không hoàn tiền",
     );
 
     cancelMode = false;
@@ -562,6 +555,10 @@ async function cancelReservation(parkingLotId, spotNumber) {
 }
 
 /* ================= TOAST ================= */
+/**
+ * Hiển thị thông báo Toast nhanh gọn trên màn hình
+ * @param {string} message Nội dung thông báo
+ */
 function showToast(message) {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
@@ -574,17 +571,17 @@ function showToast(message) {
 
 /* ================= SOCKET ================= */
 const socket = io("http://localhost:5000");
-// socket.on("spot-freed", () => {
-//   showToast(" Có chỗ đỗ vừa được giải phóng!");
-//   if (currentLotId && currentTotalSpots) {
-//     showSpots(currentLotId, currentTotalSpots);
-//   }
-// });
 
+/**
+ * Lắng nghe sự kiện thông báo bãi đỗ sắp hết giờ từ server
+ */
 socket.on("parking-expiring", (list) => {
   showToast(` Có ${list.length} chỗ sắp hết giờ!`);
 });
 
+/**
+ * Lắng nghe sự kiện cập nhật trạng thái ô đỗ theo thời gian thực (thanh toán thành công, hết hạn mang tính chờ...)
+ */
 socket.on("spot-updated", (data) => {
   if (data.parking_lot_id !== currentLotId) return;
 
@@ -599,56 +596,48 @@ socket.on("spot-updated", (data) => {
 });
 
 //======================               ============================
-const map = document.getElementById("parkingMap");
-
-let scale = 1;
-let originX = 0;
-let originY = 0;
-let isDragging = false;
-let startX, startY;
-
-map.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  scale += e.deltaY * -0.001;
-  scale = Math.min(Math.max(0.6, scale), 1.6);
-  map.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
-});
-
-map.addEventListener("mousedown", (e) => {
-  isDragging = true;
-  startX = e.clientX - originX;
-  startY = e.clientY - originY;
-  map.style.cursor = "grabbing";
-});
-
-document.addEventListener("mousemove", (e) => {
-  if (!isDragging) return;
-  originX = e.clientX - startX;
-  originY = e.clientY - startY;
-  map.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
-});
-
-document.addEventListener("mouseup", () => {
-  isDragging = false;
-  map.style.cursor = "grab";
-});
+//======================               ============================
+// Zoom/Drag logic removed as per user request
+/**
+ * Thiết lập các sự kiện sau khi toàn bộ nội dung DOM được tải xong
+ * Xử lý hiển thị nút Đăng xuất và logic đăng xuất người dùng
+ */
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("sp_token");
 
   const logoutItem = document.getElementById("logoutItem");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // Nếu đã đăng nhập hiện nút Đăng xuất
+  // Đăng xuất
   if (token && token !== "null" && token !== "undefined") {
     if (logoutItem) logoutItem.style.display = "block";
   }
 
-  // Click Đăng xuất
+  // Logic menu mobile
+  const menuToggle = document.getElementById("mobile-menu");
+  const navMenu = document.getElementById("nav-menu");
+
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener("click", () => {
+      navMenu.classList.toggle("active");
+      menuToggle.classList.toggle("is-active");
+    });
+  }
+
+  // Handle mobile dropdowns
+  const dropdowns = document.querySelectorAll(".dropdown");
+  dropdowns.forEach((dropdown) => {
+    dropdown.addEventListener("click", (e) => {
+      if (window.innerWidth <= 1024) {
+        dropdown.classList.toggle("active");
+      }
+    });
+  });
+
   if (logoutBtn) {
     logoutBtn.addEventListener("click", (e) => {
       e.preventDefault();
 
-      //  XOÁ TOÀN BỘ DẤU VẾ ĐĂNG NHẬP
       localStorage.removeItem("sp_token");
       localStorage.removeItem("sp_role");
       localStorage.removeItem("parking_ticket");
@@ -656,7 +645,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       alert("Đã đăng xuất");
 
-      //  quay về trang chủ hoặc login
       window.location.href = "/frontend/trangchu/index.html";
     });
   }
