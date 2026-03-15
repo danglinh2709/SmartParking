@@ -38,6 +38,14 @@ setInterval(async () => {
   await expireParking(io, pool);
 }, 30 * 1000);
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "Smart Parking backend is running",
+    payment_return: "/api/payment/vnpay-return",
+    payment_ipn: "/api/payment/vnpay-ipn",
+  });
+});
+
 // ===== START =====
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

@@ -78,7 +78,7 @@ function renderParkingList(list) {
 }
 
 function debounce(func, delay) {
-  let timer;
+  let timer = 300;
 
   return function (...args) {
     clearTimeout(timer);

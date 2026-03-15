@@ -6,8 +6,10 @@ exports.findByEmail = async (email) => {
   const res = await pool
     .request()
     .input("email", sql.NVarChar, email)
-    .query("SELECT 1 FROM Users WHERE Email=@email");
-  return res.recordset.length > 0;
+    .query(
+      "SELECT UserID, FullName, Role, EmailVerified FROM Users WHERE Email=@email",
+    );
+  return res.recordset[0];
 };
 
 exports.createTenant = async ({
@@ -75,5 +77,56 @@ exports.updatePassword = async (userId, hash) => {
       UPDATE Users
       SET PasswordHash=@hash
       WHERE UserID=@id
+    `);
+};
+
+exports.setResetOtp = async (email, otp, expiredAt) => {
+  const pool = await poolPromise;
+  await pool
+    .request()
+    .input("email", sql.NVarChar, email)
+    .input("otp", sql.VarChar, otp)
+    .input("expiredAt", sql.DateTime, expiredAt).query(`
+      UPDATE Users
+      SET EmailOTP=@otp, EmailOTPExpiredAt=@expiredAt
+      WHERE Email=@email
+    `);
+};
+
+exports.verifyResetOtp = async (email, otp) => {
+  const pool = await poolPromise;
+  const res = await pool
+    .request()
+    .input("email", sql.NVarChar, email)
+    .input("otp", sql.VarChar, otp).query(`
+      SELECT UserID, EmailOTP, EmailOTPExpiredAt
+      FROM Users
+      WHERE Email=@email
+    `);
+
+  const user = res.recordset[0];
+  console.log(`[DEBUG] Verify OTP for ${email}:`, {
+    providedOtp: otp,
+    dbOtp: user?.EmailOTP,
+    dbExpiredAt: user?.EmailOTPExpiredAt,
+    serverTime: new Date(),
+  });
+
+  if (
+    user &&
+    user.EmailOTP === otp &&
+    new Date(user.EmailOTPExpiredAt) > new Date()
+  ) {
+    return user;
+  }
+  return null;
+};
+
+exports.clearOtp = async (email) => {
+  const pool = await poolPromise;
+  await pool.request().input("email", sql.NVarChar, email).query(`
+      UPDATE Users
+      SET EmailOTP=NULL, EmailOTPExpiredAt=NULL
+      WHERE Email=@email
     `);
 };

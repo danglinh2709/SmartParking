@@ -79,7 +79,7 @@ exports.login = async ({ loginId, password }) => {
   const token = jwt.sign(
     { id: user.UserID, role: user.Role },
     process.env.JWT_SECRET,
-    { expiresIn: "2h" }
+    { expiresIn: "2h" },
   );
 
   return {
@@ -87,4 +87,45 @@ exports.login = async ({ loginId, password }) => {
     role: user.Role,
     fullName: user.FullName,
   };
+};
+
+exports.forgotPassword = async (email) => {
+  if (!email) throw { status: 400, message: "Thiếu email" };
+
+  const user = await userModel.findByEmail(email);
+  if (!user)
+    throw { status: 404, message: "Không tìm thấy người dùng với email này" };
+
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const expiredAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  console.log(
+    `[DEBUG] Generated OTP for ${email}: ${otp}, expires at: ${expiredAt}`,
+  );
+
+  await userModel.setResetOtp(email, otp, expiredAt);
+  await sendOtpMail({ to: email, otp, expiredAt });
+};
+
+exports.verifyResetOtp = async ({ email, otp }) => {
+  if (!email || !otp) throw { status: 400, message: "Thiếu thông tin" };
+
+  const user = await userModel.verifyResetOtp(email, otp);
+  if (!user)
+    throw { status: 400, message: "Mã OTP không đúng hoặc đã hết hạn" };
+
+  return { success: true };
+};
+
+exports.resetPassword = async ({ email, otp, newPassword }) => {
+  if (!email || !otp || !newPassword)
+    throw { status: 400, message: "Thiếu thông tin" };
+
+  const user = await userModel.verifyResetOtp(email, otp);
+  if (!user)
+    throw { status: 400, message: "Mã OTP không đúng hoặc đã hết hạn" };
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await userModel.updatePassword(user.UserID, hash);
+  await userModel.clearOtp(email);
 };

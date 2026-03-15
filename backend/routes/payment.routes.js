@@ -73,7 +73,7 @@ router.get("/vnpay-ipn", require("../controllers/vnpay.controller").ipn);
  */
 router.get(
   "/vnpay-return",
-  require("../controllers/vnpay.controller").returnPage
+  require("../controllers/vnpay.controller").returnPage,
 );
 
 module.exports = router;

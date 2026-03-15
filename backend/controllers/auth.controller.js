@@ -26,3 +26,30 @@ exports.login = async (req, res) => {
     res.status(err.status || 500).json({ msg: err.message });
   }
 };
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    await authService.forgotPassword(req.body.email);
+    res.json({ msg: "Mã OTP đã được gửi về email của bạn" });
+  } catch (err) {
+    res.status(err.status || 500).json({ msg: err.message });
+  }
+};
+
+exports.verifyResetOtp = async (req, res) => {
+  try {
+    await authService.verifyResetOtp(req.body);
+    res.json({ msg: "Mã OTP hợp lệ" });
+  } catch (err) {
+    res.status(err.status || 500).json({ msg: err.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    await authService.resetPassword(req.body);
+    res.json({ msg: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại" });
+  } catch (err) {
+    res.status(err.status || 500).json({ msg: err.message });
+  }
+};

@@ -6,66 +6,77 @@ const reservationModel = require("../models/reservation.model");
 const { getIO } = require("../socket");
 const parkingSpotModel = require("../models/parkingSpot.model");
 
-exports.ipn = async (req, res) => {
-  let vnp_Params = { ...req.query };
-
-  console.log(" IPN HIT", vnp_Params.vnp_TxnRef);
-
+const processPaymentStatus = async (vnp_Params) => {
   const secureHash = vnp_Params.vnp_SecureHash;
+  let params = { ...vnp_Params };
+  delete params.vnp_SecureHash;
+  delete params.vnp_SecureHashType;
 
-  delete vnp_Params.vnp_SecureHash;
-  delete vnp_Params.vnp_SecureHashType;
-
+  // Sắp xếp và tạo chuỗi hash
   const signData = qs.stringify(
-    Object.keys(vnp_Params)
+    Object.keys(params)
       .sort()
       .reduce((o, k) => {
-        o[k] = vnp_Params[k];
+        o[k] = params[k];
         return o;
       }, {}),
-    { encode: false }
+    { encode: true, format: "RFC1738" },
   );
 
   const checkHash = crypto
     .createHmac("sha512", config.vnp_HashSecret)
-    .update(signData)
+    .update(signData, "utf8")
     .digest("hex");
 
   if (checkHash !== secureHash) {
-    return res.json({ RspCode: "97", Message: "Invalid signature" });
+    return { success: false, code: "97", message: "Invalid signature" };
   }
 
-  //  thanh toán fail → bỏ qua
   if (vnp_Params.vnp_ResponseCode !== "00") {
-    return res.json({ RspCode: "00", Message: "Ignored" });
+    return { success: false, code: "00", message: "Payment failed at VNPay" };
   }
 
-  const ticket = vnp_Params.vnp_TxnRef.split("_")[1];
+  const parts = vnp_Params.vnp_TxnRef.split("_");
+  const ticket = parts[1];
+  if (!ticket) {
+    return { success: false, code: "01", message: "Invalid project ref" };
+  }
 
   const pool = await poolPromise;
+
+  // Kiểm tra xem đã xử lý chưa (tránh trùng lặp giữa IPN và Return)
+  const paymentCheck = await pool.request().input("txnRef", vnp_Params.vnp_TxnRef).query(`
+    SELECT status FROM Payment WHERE vnp_txn_ref=@txnRef
+  `);
+
+  if (!paymentCheck.recordset.length) {
+    return { success: false, code: "01", message: "Order not found" };
+  }
+
+  if (paymentCheck.recordset[0].status !== "PENDING") {
+    return { success: true, code: "00", message: "Already processed" };
+  }
+
   const tx = pool.transaction();
   await tx.begin();
 
   try {
-    //  LẤY THÔNG TIN VÉ (để emit socket)
-    const reservation = await tx.request().input("ticket", ticket).query(`
+    const reservationRes = await tx.request().input("ticket", ticket).query(`
         SELECT parking_lot_id, spot_number
         FROM ParkingReservation
         WHERE ticket=@ticket
       `);
 
-    if (!reservation.recordset.length) {
+    if (!reservationRes.recordset.length) {
       throw new Error("Reservation not found");
     }
 
-    const { parking_lot_id, spot_number } = reservation.recordset[0];
+    const { parking_lot_id, spot_number } = reservationRes.recordset[0];
 
-    // ĐỔI TRẠNG THÁI VÉ
+    // Cập nhật trạng thái
     await reservationModel.markPaid(tx, ticket);
-
     await parkingSpotModel.assignReservation(tx, ticket);
 
-    //  UPDATE PAYMENT
     await tx
       .request()
       .input("txnRef", vnp_Params.vnp_TxnRef)
@@ -80,9 +91,8 @@ exports.ipn = async (req, res) => {
 
     await tx.commit();
 
-    // EMIT SOCKET
+    // Socket thông báo
     const io = getIO();
-
     io.emit("spot-updated", {
       parking_lot_id,
       spot_number,
@@ -90,15 +100,26 @@ exports.ipn = async (req, res) => {
       reason: "PAYMENT_SUCCESS",
     });
 
-    return res.json({ RspCode: "00", Message: "Success" });
-  } catch (e) {
+    return { success: true, code: "00", message: "Success" };
+  } catch (err) {
     await tx.rollback();
-    console.error(e);
-    return res.json({ RspCode: "99", Message: "DB error" });
+    console.error(" [PAYMENT ERR]", err);
+    return { success: false, code: "99", message: "DB error" };
   }
 };
 
-exports.returnPage = (req, res) => {
-  const query = new URLSearchParams(req.query).toString();
+exports.ipn = async (req, res) => {
+  console.log(" [VNPay IPN] HIT!", req.query.vnp_TxnRef);
+  const result = await processPaymentStatus(req.query);
+  return res.json({ RspCode: result.code, Message: result.message });
+};
+
+exports.returnPage = async (req, res) => {
+  console.log(" [VNPay Return] HIT!", req.query.vnp_TxnRef);
+  
+  // Xử lý luôn trong return (đặc biệt quan trọng khi chạy localhost vì VNPay không gọi được IPN)
+  await processPaymentStatus(req.query);
+
+  const query = qs.stringify(req.query, { encode: true });
   res.redirect(`/frontend/ticket/ticket.html?${query}`);
 };

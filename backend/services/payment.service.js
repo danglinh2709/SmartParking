@@ -38,6 +38,13 @@ exports.payReservation = async ({ ticket }, ip) => {
     ip,
   });
 
+  console.log(" [PAYMENT] Saving to DB:", {
+    ticket,
+    txnRef: vnp_TxnRef,
+    amount,
+    status: "PENDING",
+  });
+
   await pool
     .request()
     .input("ticket", ticket)
@@ -47,12 +54,7 @@ exports.payReservation = async ({ ticket }, ip) => {
       VALUES (@ticket, @txnRef, @amount, 'PENDING')
     `);
 
-  console.log("PAYMENT DEBUG:", {
-    ticket,
-    hours,
-    amount,
-    vnp_TxnRef,
-  });
+  console.log(" [PAYMENT] Saved successfully!");
 
   return { paymentUrl };
 };

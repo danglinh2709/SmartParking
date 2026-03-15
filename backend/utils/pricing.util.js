@@ -5,7 +5,7 @@
  * @returns {number} Giá mỗi giờ (VND)
  */
 function calculateDynamicPrice(totalSpots, availableSpots) {
-  const BASE_PRICE = 10000;
+  const BASE_PRICE = 7000;
   if (!totalSpots || totalSpots <= 0) return BASE_PRICE;
 
   const occupancyRate = (totalSpots - availableSpots) / totalSpots;
