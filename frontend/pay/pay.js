@@ -77,6 +77,17 @@ function renderParkingList(list) {
   });
 }
 
+function debounce(func, delay) {
+  let timer;
+
+  return function (...args) {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
 /* ================= TÌM KIẾM ================= */
 /**
  * Lọc danh sách bãi đỗ xe dựa trên từ khóa người dùng nhập vào
@@ -165,7 +176,7 @@ async function showSpots(parkingLotId, totalSpots) {
   for (let i = 1; i <= totalSpots; i++) {
     const spot = document.createElement("div");
     spot.className = "spot";
-    
+
     const info = spotMap[i] || { status: "FREE", isMine: false };
     const status = info.status;
 
@@ -595,8 +606,6 @@ socket.on("spot-updated", (data) => {
   }
 });
 
-//======================               ============================
-//======================               ============================
 // Zoom/Drag logic removed as per user request
 /**
  * Thiết lập các sự kiện sau khi toàn bộ nội dung DOM được tải xong
@@ -647,5 +656,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       window.location.href = "/frontend/trangchu/index.html";
     });
+  }
+
+  // debounce
+  const searchInput = document.getElementById("searchInput");
+
+  if (searchInput) {
+    searchInput.addEventListener(
+      "input",
+      debounce((e) => {
+        filterParking(e.target.value);
+      }, 300),
+    );
   }
 });
