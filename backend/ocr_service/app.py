@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from plate_ocr import read_plate
 
 app = Flask(__name__)
-
 @app.route("/ocr", methods=["POST"])
 def ocr_plate():
     try:
@@ -11,6 +10,7 @@ def ocr_plate():
             return jsonify(default_response())
 
         result = read_plate(data["image"])
+
 
         return jsonify({
             "valid": bool(result["top"] or result["bottom"]),

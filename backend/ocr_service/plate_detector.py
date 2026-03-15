@@ -19,7 +19,6 @@ def detect_plate(img):
         for r in results:
             if r.boxes is None:
                 continue
-
             for box in r.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 plate_img = img[y1:y2, x1:x2]
