@@ -6,11 +6,9 @@ exports.getValidTicket = async (ticket) => {
     SELECT ticket, license_plate, spot_number
     FROM ParkingReservation
     WHERE ticket = @ticket
-  AND status = 'PAID'
-  AND is_active = 1
-  AND DATEADD(HOUR,7,GETUTCDATE())
-      BETWEEN start_time AND end_time
-
+    AND status = 'PAID'
+    AND is_active = 1
+    AND DATEADD(HOUR,7,GETUTCDATE()) <= end_time
   `);
   return res.recordset[0];
 };
@@ -115,16 +113,6 @@ exports.remove = async (lot, spot) => {
     `);
 };
 
-// exports.getPending = async (ticket) => {
-//   const pool = await poolPromise;
-//   const res = await pool.request().input("ticket", ticket).query(`
-//     SELECT id, parking_lot_id
-//     FROM ParkingReservation
-//     WHERE ticket = @ticket
-//       AND status = 'PENDING'
-//   `);
-//   return res.recordset[0];
-// };
 exports.getPending = async (ticket) => {
   const pool = await poolPromise;
   const res = await pool.request().input("ticket", ticket).query(`
@@ -168,15 +156,12 @@ exports.verifyCheckinTicket = async (ticket, lotId) => {
         AND pr.parking_lot_id = @lot
         AND pr.status = 'PAID'
         AND pr.is_active = 1
-        AND DATEADD(HOUR,7,GETUTCDATE())
-            BETWEEN pr.start_time AND pr.end_time
+        AND DATEADD(HOUR,7,GETUTCDATE()) <= pr.end_time
         AND NOT EXISTS (
           SELECT 1 FROM ParkingSession s
           WHERE s.ticket = pr.ticket
             AND s.status = 'IN'
         )
-        AND DATEADD(HOUR,7,GETUTCDATE())
-            BETWEEN pr.start_time AND pr.end_time
     `);
   return res.recordset[0];
 };

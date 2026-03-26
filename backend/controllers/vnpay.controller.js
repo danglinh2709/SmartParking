@@ -44,8 +44,10 @@ const processPaymentStatus = async (vnp_Params) => {
 
   const pool = await poolPromise;
 
-  // Kiểm tra xem đã xử lý chưa (tránh trùng lặp giữa IPN và Return)
-  const paymentCheck = await pool.request().input("txnRef", vnp_Params.vnp_TxnRef).query(`
+  // Kiểm tra xem đã xử lý ? (tránh trùng lặp giữa IPN và Return)
+  const paymentCheck = await pool
+    .request()
+    .input("txnRef", vnp_Params.vnp_TxnRef).query(`
     SELECT status FROM Payment WHERE vnp_txn_ref=@txnRef
   `);
 
@@ -116,8 +118,8 @@ exports.ipn = async (req, res) => {
 
 exports.returnPage = async (req, res) => {
   console.log(" [VNPay Return] HIT!", req.query.vnp_TxnRef);
-  
-  // Xử lý luôn trong return (đặc biệt quan trọng khi chạy localhost vì VNPay không gọi được IPN)
+
+  // Xử lý trong return (đặc biệt quan trọng khi chạy localhost vì VNPay không gọi được IPN)
   await processPaymentStatus(req.query);
 
   const query = qs.stringify(req.query, { encode: true });

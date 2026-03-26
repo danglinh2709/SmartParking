@@ -7,6 +7,7 @@ const { saveBase64Image } = require("../utils/image.util");
 const reservationModel = require("../models/reservation.model");
 const parkingSessionModel = require("../models/parkingSession.model");
 const parkingSpotModel = require("../models/parkingSpot.model");
+const socket = require("../socket");
 
 exports.checkin = async ({
   ticket_code,
@@ -25,8 +26,10 @@ exports.checkin = async ({
 
   /* ========= 2. OCR ========= */
   const [frontOCR, backOCR] = await Promise.all([
-    image_front ? recognizePlate(image_front) : {},
-    image_back ? recognizePlate(image_back) : {},
+    //   image_front ? recognizePlate(image_front) : {},
+    // image_back ? recognizePlate(image_back) : {},
+    image_front ? recognizePlate(image_front) : { top: "", bottom: "" },
+    image_back ? recognizePlate(image_back) : { top: "", bottom: "" },
   ]);
 
   const ocrTop =
@@ -78,6 +81,13 @@ exports.checkin = async ({
     await parkingSpotModel.occupy(tx, reservation.spot_number, parking_lot_id);
 
     await tx.commit();
+
+    socket.getIO().emit("PARKING_UPDATED", {
+      spotId: reservation.spot_number,
+      status: "occupied",
+      lotId: parking_lot_id,
+      message: `Cho xe vào bãi thành công [${ticketNorm}]`,
+    });
 
     return {
       msg: "Cho xe vào bãi thành công",

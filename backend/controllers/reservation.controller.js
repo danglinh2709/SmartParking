@@ -5,7 +5,7 @@ exports.create = async (req, res) => {
     const result = await reservationService.createReservation(
       req.body,
       req.user.id,
-      req.app
+      req.app,
     );
     res.json(result);
   } catch (err) {
@@ -19,7 +19,7 @@ exports.cancel = async (req, res) => {
     const result = await reservationService.cancelReservation(
       req.body,
       req.user.id,
-      req.app
+      req.app,
     );
     res.json(result);
   } catch (err) {

@@ -8,7 +8,9 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
     .input("lot", parkingLotId)
     .input("userId", userId).query(`
       SELECT
+        ps.id,
         ps.spot_code,
+        ps.admin_status,
 
         CASE
           -- ĐANG ĐỖ
@@ -30,7 +32,8 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
           )
           AND NOT EXISTS (
             SELECT 1 FROM ParkingSession s
-            WHERE s.spot_number = ps.spot_code
+            WHERE s.parking_lot_id = ps.parking_lot_id
+              AND s.spot_number = ps.spot_code
               AND s.status = 'IN'
           ) THEN 'TEMP_OUT'
 
@@ -63,9 +66,133 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.spot_number = ps.spot_code
               AND r.user_id = @userId
               AND r.status IN ('PENDING','PAID')
+              AND r.is_active = 1
           ) THEN 1
           ELSE 0
-        END AS is_mine
+        END AS is_mine,
+
+        -- ===== Detail helpers for staff UI =====
+        COALESCE(
+          (SELECT TOP 1 s.ticket
+            FROM ParkingSession s
+            WHERE s.parking_lot_id = ps.parking_lot_id
+              AND s.spot_number = ps.spot_code
+              AND s.status = 'IN'
+            ORDER BY s.checkin_time DESC),
+
+          (SELECT TOP 1 r.ticket
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PENDING'
+              AND r.is_active = 1
+              AND DATEDIFF(MINUTE, r.created_at, GETDATE()) <= 10
+            ORDER BY r.created_at DESC),
+
+          (SELECT TOP 1 r.ticket
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PAID'
+              AND r.is_active = 1
+            ORDER BY r.created_at DESC)
+        ) AS ticket_code,
+
+        COALESCE(
+          (SELECT TOP 1 s.license_plate
+            FROM ParkingSession s
+            WHERE s.parking_lot_id = ps.parking_lot_id
+              AND s.spot_number = ps.spot_code
+              AND s.status = 'IN'
+            ORDER BY s.checkin_time DESC),
+
+          (SELECT TOP 1 r.license_plate
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PENDING'
+              AND r.is_active = 1
+              AND DATEDIFF(MINUTE, r.created_at, GETDATE()) <= 10
+            ORDER BY r.created_at DESC),
+
+          (SELECT TOP 1 r.license_plate
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PAID'
+              AND r.is_active = 1
+            ORDER BY r.created_at DESC)
+        ) AS license_plate,
+
+        (SELECT TOP 1 s.checkin_time
+          FROM ParkingSession s
+          WHERE s.parking_lot_id = ps.parking_lot_id
+            AND s.spot_number = ps.spot_code
+            AND s.status = 'IN'
+          ORDER BY s.checkin_time DESC) AS checkin_time,
+
+        (SELECT TOP 1 s.checkout_time
+          FROM ParkingSession s
+          WHERE s.parking_lot_id = ps.parking_lot_id
+            AND s.spot_number = ps.spot_code
+            AND s.status = 'OUT'
+          ORDER BY s.checkout_time DESC) AS checkout_time,
+
+        COALESCE(
+          (SELECT TOP 1 r.start_time
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PENDING'
+              AND r.is_active = 1
+              AND DATEDIFF(MINUTE, r.created_at, GETDATE()) <= 10
+            ORDER BY r.created_at DESC),
+          (SELECT TOP 1 r.start_time
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PAID'
+              AND r.is_active = 1
+            ORDER BY r.created_at DESC)
+        ) AS start_time,
+
+        COALESCE(
+          (SELECT TOP 1 r.end_time
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PENDING'
+              AND r.is_active = 1
+              AND DATEDIFF(MINUTE, r.created_at, GETDATE()) <= 10
+            ORDER BY r.created_at DESC),
+          (SELECT TOP 1 r.end_time
+            FROM ParkingReservation r
+            WHERE r.parking_lot_id = ps.parking_lot_id
+              AND r.spot_number = ps.spot_code
+              AND r.status = 'PAID'
+              AND r.is_active = 1
+            ORDER BY r.created_at DESC)
+        ) AS end_time,
+
+        (SELECT TOP 1 u.FullName
+          FROM ParkingReservation r
+          JOIN Users u ON u.UserID = r.user_id
+          WHERE r.parking_lot_id = ps.parking_lot_id
+            AND r.spot_number = ps.spot_code
+            AND r.user_id IS NOT NULL
+            AND r.status IN ('PENDING','PAID')
+            AND r.is_active = 1
+          ORDER BY r.created_at DESC) AS customer_name,
+
+        (SELECT TOP 1 u.Phone
+          FROM ParkingReservation r
+          JOIN Users u ON u.UserID = r.user_id
+          WHERE r.parking_lot_id = ps.parking_lot_id
+            AND r.spot_number = ps.spot_code
+            AND r.user_id IS NOT NULL
+            AND r.status IN ('PENDING','PAID')
+            AND r.is_active = 1
+          ORDER BY r.created_at DESC) AS customer_phone
 
       FROM ParkingSpot ps
       WHERE ps.parking_lot_id = @lot
@@ -125,4 +252,17 @@ exports.bulkCreate = async (tx, lotId, totalSpots) => {
       )
     `);
   }
+};
+
+exports.setAdminStatus = async (tx, spotId, status) => {
+  const result = await tx
+    .request()
+    .input("spotId", spotId)
+    .input("status", status).query(`
+      UPDATE ParkingSpot
+      SET admin_status = @status
+      OUTPUT INSERTED.parking_lot_id, INSERTED.spot_code
+      WHERE id = @spotId
+    `);
+  return result.recordset[0];
 };

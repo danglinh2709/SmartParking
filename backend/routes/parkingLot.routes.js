@@ -56,7 +56,7 @@ router.get("/", parkingLotController.getAll);
 router.get(
   "/:id/spot-status",
   authOptional,
-  parkingLotController.getSpotStatus
+  parkingLotController.getSpotStatus,
 );
 
 /**

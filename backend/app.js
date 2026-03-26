@@ -24,12 +24,15 @@ app.use("/api/reservations", require("./routes/reservation.routes"));
 app.use("/api/payment", require("./routes/payment.routes"));
 app.use("/api/contact", require("./routes/contact.routes"));
 app.use("/api/staff", require("./routes/staff.routes"));
+app.use("/api/staff/ticket-management", require("./routes/ticketManagement.routes"));
 
 app.use("/api/tickets", require("./routes/ticket.routes"));
 
 app.use("/api/manager", require("./routes/manager.routes"));
 app.use("/api/checkin", require("./routes/checkin.routes"));
 app.use("/api/checkout", require("./routes/checkout.routes"));
+
+app.use("/api/parking-spots", require("./routes/parkingSpot.routes"));
 
 app.use("/public", express.static(path.join(__dirname, "public")));
 

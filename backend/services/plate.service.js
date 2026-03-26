@@ -5,13 +5,13 @@ exports.recognizePlate = async (base64) => {
     const res = await axios.post(
       "http://127.0.0.1:6000/ocr",
       { image: base64 },
-      { timeout: 30000 }
+      { timeout: 30000 },
     );
 
     const data = res.data || {};
 
     return {
-      valid: !!data.plate, // ⭐ FIX QUAN TRỌNG
+      valid: !!data.plate,
       plate: data.plate || "",
       top: data.top || "",
       bottom: data.bottom || "",

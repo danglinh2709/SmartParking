@@ -785,6 +785,19 @@ nav ul li a:hover {
   color: #ff9800;
 }
 
+.spot.locked {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.spot.locked:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  transform: none;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
   .parking-map {

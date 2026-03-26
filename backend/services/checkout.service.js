@@ -6,6 +6,7 @@ const { matchPlate } = require("../utils/plate.smart");
 
 const parkingSessionModel = require("../models/parkingSession.model");
 const parkingSpotModel = require("../models/parkingSpot.model");
+const socket = require("../socket");
 
 /* ===== OCR helper ===== */
 async function extractPlates(img) {
@@ -26,7 +27,7 @@ async function extractPlates(img) {
     return r
       .filter(
         (item) =>
-          Array.isArray(item) && typeof item[1] === "string" && item[2] >= 0.3
+          Array.isArray(item) && typeof item[1] === "string" && item[2] >= 0.3,
       )
       .map((item) => item[1]);
   }
@@ -62,8 +63,8 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
   if (normalized.length >= 2) {
     ocrPlates.push(normalized.join(""));
   }
-
-  ocrPlates = [...new Set(ocrPlates)];
+  // ocrPlates = [...new Set(ocrPlates)];
+  ocrPlates = Array.from(new Set(ocrPlates));
 
   /* ========= 3. ANTI GIAN LẬN ========= */
   const matched = ocrPlates.some((p) => matchPlate(ticketPlate, p));
@@ -103,7 +104,7 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
     await parkingSpotModel.release(
       tx,
       session.spot_number,
-      session.parking_lot_id
+      session.parking_lot_id,
     );
 
     await tx.request().input("ticket", ticket_code).query(`
@@ -114,6 +115,13 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
       `);
 
     await tx.commit();
+
+    socket.getIO().emit("PARKING_UPDATED", {
+      spotId: session.spot_number,
+      status: "available",
+      lotId: session.parking_lot_id,
+      message: `Xe đã ra bãi thành công [${ticketPlate}]`,
+    });
   } catch (err) {
     await tx.rollback();
     throw err;

@@ -157,6 +157,7 @@ async function showSpots(parkingLotId, totalSpots) {
   data.forEach((s) => {
     spotMap[s.spot_code] = {
       status: s.spot_status,
+      adminStatus: s.admin_status,
       isMine: s.is_mine === 1,
     };
   });
@@ -177,11 +178,25 @@ async function showSpots(parkingLotId, totalSpots) {
     const spot = document.createElement("div");
     spot.className = "spot";
 
-    const info = spotMap[i] || { status: "FREE", isMine: false };
+    const info = spotMap[i] || {
+      status: "FREE",
+      adminStatus: "NORMAL",
+      isMine: false,
+    };
     const status = info.status;
+    const adminStatus = info.adminStatus;
 
     let iconHtml = "";
-    if (status === "OCCUPIED") {
+    if (adminStatus === "LOCKED" || adminStatus === "MAINTENANCE") {
+      spot.classList.add("locked");
+      iconHtml =
+        adminStatus === "LOCKED"
+          ? '<i class="fas fa-lock"></i>'
+          : '<i class="fas fa-wrench"></i>';
+      // Disable click explicitly
+      spot.style.cursor = "not-allowed";
+      spot.onclick = null;
+    } else if (status === "OCCUPIED") {
       spot.classList.add("parking");
       iconHtml = '<i class="fas fa-car"></i>';
       occupiedCount++;
@@ -451,6 +466,7 @@ function tinhKhoangCach(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
+module.exports = { tinhKhoangCach };
 
 /* ===== GIÁ THEO GIỜ (ĐÃ CHUYỂN SANG DÙNG GIÁ ĐỘNG TỪ BÃI ĐỖ) ===== */
 
@@ -485,7 +501,7 @@ function calculatePrice() {
   // Cập nhật nhãn giá hiển thị trong form
   const priceLabel = document.querySelector(".price-box");
   if (priceLabel) {
-    priceLabel.innerHTML = `💰 Tổng tiền (tạm tính: ${currentRate.toLocaleString("vi-VN")} đ/h): <span id="totalPrice">${total.toLocaleString("vi-VN")}</span> VNĐ`;
+    priceLabel.innerHTML = `💰 Tổng tiền (${currentRate.toLocaleString("vi-VN")} đ/giờ): <span id="totalPrice">${total.toLocaleString("vi-VN")}</span> VNĐ`;
   }
 }
 
@@ -603,6 +619,18 @@ socket.on("spot-updated", (data) => {
   }
   if (data.reason === "PAYMENT_SUCCESS") {
     showToast(`💰 Ô ${data.spot_number} đã thanh toán`);
+  }
+});
+
+/**
+ * Lắng nghe sự kiện Check-in / Check-out từ Staff cập nhật theo thời gian thực
+ */
+socket.on("PARKING_UPDATED", (data) => {
+  if (Number(data.lotId) !== Number(currentLotId)) return;
+
+  showSpots(currentLotId, currentTotalSpots);
+  if (data.message) {
+    showToast(`📢 ${data.message}`);
   }
 });
 

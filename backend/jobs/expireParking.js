@@ -1,8 +1,9 @@
 // HẾT GIỜ ĐỖ (PAID / PARKING → FREE)
+// HẾT GIỜ ĐỖ (PAID / PARKING → FREE)
 module.exports = async function expireParking(io, pool) {
   try {
     const rs = await pool.request().query(`
-      SELECT id, parking_lot_id, spot_number
+      SELECT id, parking_lot_id, spot_number, ticket
       FROM ParkingReservation
       WHERE status IN ('PAID','PARKING')
         AND end_time < GETDATE()
@@ -11,14 +12,14 @@ module.exports = async function expireParking(io, pool) {
     if (!rs.recordset.length) return;
 
     for (const r of rs.recordset) {
-      // 1 cập nhật reservation
+      // 1. Cập nhật reservation thành EXPIRED
       await pool.request().input("id", r.id).query(`
           UPDATE ParkingReservation
           SET status = 'EXPIRED'
           WHERE id = @id
         `);
 
-      // 2 giải phóng spot
+      // 2. Giải phóng spot
       await pool
         .request()
         .input("lot", r.parking_lot_id)
@@ -30,15 +31,32 @@ module.exports = async function expireParking(io, pool) {
             AND spot_code = @spot
         `);
 
-      // 3 socket
-      for (const r of rs.recordset) {
-        io?.emit("spot-updated", {
-          parking_lot_id: r.parking_lot_id,
-          spot_number: r.spot_number,
-          status: "FREE",
-          reason: "PARKING_EXPIRED",
-        });
-      }
+      // 3. Tăng số chỗ trống cho ParkingLot
+      await pool
+        .request()
+        .input("lot", r.parking_lot_id).query(`
+          UPDATE ParkingLot
+          SET available_spots = available_spots + 1
+          WHERE id = @lot
+        `);
+
+      // 4. Đóng ParkingSession (nếu có xe chưa chịu ra)
+      await pool
+        .request()
+        .input("ticket", r.ticket).query(`
+          UPDATE ParkingSession
+          SET checkout_time = GETDATE(),
+              status = 'EXPIRED_FORCE_RELEASE'
+          WHERE ticket = @ticket AND checkout_time IS NULL
+        `);
+
+      // 5. Emit socket (Đã fix lỗi lặp lồng nhau)
+      io?.emit("spot-updated", {
+        parking_lot_id: r.parking_lot_id,
+        spot_number: r.spot_number,
+        status: "FREE",
+        reason: "PARKING_EXPIRED",
+      });
     }
 
     console.log("🟢 Expired parking released");

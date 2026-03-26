@@ -10,6 +10,21 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
   return parkingSpotModel.getSpotStatus(parkingLotId, userId);
 };
 
+exports.setSpotAdminStatus = async (spotId, status) => {
+  const pool = await poolPromise;
+  const tx = pool.transaction();
+  await tx.begin();
+
+  try {
+    const spotData = await parkingSpotModel.setAdminStatus(tx, spotId, status);
+    await tx.commit();
+    return { success: true, spot: spotData };
+  } catch (err) {
+    await tx.rollback();
+    throw err;
+  }
+};
+
 exports.create = async ({ name, total_spots, image_url, lat, lng }) => {
   if (!name || !total_spots) {
     throw { status: 400, message: "Thiếu dữ liệu bãi đỗ" };
