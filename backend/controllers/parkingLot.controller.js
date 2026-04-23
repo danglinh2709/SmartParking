@@ -55,6 +55,19 @@ exports.updateSpotAdminStatus = async (req, res) => {
   }
 };
 
+exports.forceReleaseSpot = async (req, res) => {
+  try {
+    const { spotId } = req.params;
+    if (!spotId) return res.status(400).json({ msg: "Thiếu ID ô đỗ" });
+
+    const result = await parkingLotService.forceReleaseSpot(spotId);
+    res.json(result);
+  } catch (err) {
+    console.error("FORCE RELEASE ERROR:", err);
+    res.status(err.status || 500).json({ msg: err.message || "Lỗi server" });
+  }
+};
+
 exports.create = async (req, res) => {
   try {
     const result = await parkingLotService.create(req.body);

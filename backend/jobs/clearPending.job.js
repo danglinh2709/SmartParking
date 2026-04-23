@@ -9,7 +9,7 @@ module.exports = async function clearPending(io) {
       SELECT id, parking_lot_id, spot_number
       FROM ParkingReservation
       WHERE status = 'PENDING'
-        AND expired_at < GETDATE()
+        AND expired_at < DATEADD(HOUR, 7, GETUTCDATE())
     `);
 
     if (!rs.recordset.length) return;

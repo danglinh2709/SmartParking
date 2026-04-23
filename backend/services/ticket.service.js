@@ -11,7 +11,7 @@ exports.verifyTicket = async ({ ticket, license_plate }) => {
     throw { status: 404, message: "Vé không tồn tại" };
   }
 
-  const { status, parking_expired_at, license_plate: dbPlate } = reservation;
+  const { status, end_time, license_plate: dbPlate } = reservation;
 
   // CHƯA THANH TOÁN
   if (status === "PENDING") {
@@ -21,7 +21,7 @@ exports.verifyTicket = async ({ ticket, license_plate }) => {
   // HẾT HẠN
   if (
     status === "EXPIRED" ||
-    (parking_expired_at && new Date(parking_expired_at) < new Date())
+    (end_time && new Date(end_time) < new Date(new Date().getTime() + 7 * 60 * 60 * 1000))
   ) {
     throw { status: 400, message: "Vé đã hết hạn" };
   }

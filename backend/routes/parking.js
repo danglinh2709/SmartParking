@@ -43,6 +43,7 @@ function toDataUrl(file) {
   const b64 = file.buffer?.toString("base64") || "";
   return b64 ? `data:${mime};base64,${b64}` : null;
 }
+
 function pickImage(req, fileField, jsonField) {
   const f = (req.files || []).find((x) => x.fieldname === fileField);
   if (f) return toDataUrl(f);
@@ -50,6 +51,7 @@ function pickImage(req, fileField, jsonField) {
   const url = b?.[jsonField];
   return typeof url === "string" ? url : null;
 }
+
 function normalizePlate(p) {
   return (p || "").trim().toUpperCase().replace(/\s+/g, "");
 }
@@ -62,55 +64,16 @@ function calcFee(entryISO, exitDate = new Date()) {
   return blocks * 10000;
 }
 
-/* APIs */
-// xe đang trong bãi
-/**
- * @swagger
- * tags:
- *   name: Vehicles
- *   description: Quản lý xe ra vào bãi (Giao diện cũ/Truyền thống)
- */
-
-/**
- * @swagger
- * /api/parking:
- *   get:
- *     summary: Danh sách xe đang đỗ trong bãi
- *     tags: [Vehicles]
- *     responses:
- *       200:
- *         description: Danh sách xe
- */
 router.get("/", async (_req, res) => {
-// ... existing code ...
+  // ... existing code ...
 });
 
-/**
- * @swagger
- * /api/parking/in:
- *   post:
- *     summary: Đăng ký xe vào bãi (Kèm ảnh và biển số)
- *     tags: [Vehicles]
- *     responses:
- *       200:
- *         description: Xe vào thành công
- */
 router.post("/in", upload.any(), async (req, res) => {
-// ... existing code ...
+  // ... existing code ...
 });
 
-/**
- * @swagger
- * /api/parking/out:
- *   post:
- *     summary: Đăng ký xe ra bãi và tính phí
- *     tags: [Vehicles]
- *     responses:
- *       200:
- *         description: Xe ra thành công và thông tin phí
- */
 router.post("/out", upload.any(), async (req, res) => {
-// ... existing code ...
+  // ... existing code ...
 });
 
 module.exports = router;

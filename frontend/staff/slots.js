@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnLockSpot = document.getElementById("btnLockSpot");
   const btnMaintSpot = document.getElementById("btnMaintSpot");
   const btnUnlockSpot = document.getElementById("btnUnlockSpot");
+  const btnReleaseSpot = document.getElementById("btnReleaseSpot");
 
   /* ========= STATE ========= */
   let allSpots = [];
@@ -77,6 +78,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return "-";
     return d.toLocaleString("vi-VN");
+  }
+
+  function showToast(message, type = "info") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    const icon = type === "success" ? "fa-check-circle" : 
+                 type === "error" ? "fa-exclamation-circle" : "fa-info-circle";
+    
+    toast.innerHTML = `
+      <i class="fas ${icon}"></i>
+      <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => toast.classList.add("show"), 10);
+
+    // Auto remove
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
   }
 
   function normalizeForSearch(text) {
@@ -467,6 +495,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLockSpot.style.display = admin === "LOCKED" ? "none" : "inline-block";
     btnUnlockSpot.style.display = admin === "LOCKED" ? "inline-block" : "none";
     btnMaintSpot.style.display = admin === "MAINTENANCE" ? "none" : "inline-block";
+    
+    // Show Release button if spot is Occupied, Paid, or Pending
+    const canRelease = spot.spot_status === "OCCUPIED" || 
+                       spot.spot_status === "PAID" || 
+                       spot.spot_status === "PENDING" ||
+                       spot.spot_status === "TEMP_OUT";
+    btnReleaseSpot.style.display = canRelease ? "inline-block" : "none";
 
     detailModal.style.display = "block";
   }
@@ -505,6 +540,32 @@ document.addEventListener("DOMContentLoaded", () => {
   btnLockSpot?.addEventListener("click", () => runAction("LOCKED"));
   btnUnlockSpot?.addEventListener("click", () => runAction("NORMAL"));
   btnMaintSpot?.addEventListener("click", () => runAction("MAINTENANCE"));
+
+  async function runReleaseAction() {
+    if (!selectedSpot) return;
+    if (!confirm(`Bạn có chắc muốn giải phóng ô đỗ #${selectedSpot.spot_code}?\nHành động này sẽ hủy vé và kết thúc phiên hiện tại.`)) return;
+
+    try {
+      btnReleaseSpot.disabled = true;
+      const res = await fetch(`${API}/parking-spots/${selectedSpot.id}/force-release`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || "Giải phóng thất bại");
+
+      showToast(`Giải phóng ô đỗ #${selectedSpot.spot_code} thành công`, "success");
+      await loadSpots();
+      closeModal();
+    } catch (err) {
+      alert(safeText(err.message));
+    } finally {
+      btnReleaseSpot.disabled = false;
+    }
+  }
+
+  btnReleaseSpot?.addEventListener("click", runReleaseAction);
 
   /* ========= EXPORT CSV ========= */
   function exportCSV() {
@@ -604,12 +665,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on("spot-updated", (payload) => {
       const lot = Number(payload?.parking_lot_id);
-      if (!Number.isNaN(lot) && lot === parkingLotId) scheduleReload();
+      if (!Number.isNaN(lot) && lot === parkingLotId) {
+        if (payload.reason === "MANUAL_FORCE_RELEASE") {
+          // Do nothing, handled by local showToast
+        } else {
+          showToast(`Ô đỗ #${payload.spot_number} đã cập nhật`, "info");
+        }
+        scheduleReloadAndHighlight(payload.spot_number);
+      }
     });
-    socket.on("spot-freed", (payload) => {
-      const lot = Number(payload?.parking_lot_id);
-      if (!Number.isNaN(lot) && lot === parkingLotId) scheduleReload();
-    });
+
+    function scheduleReloadAndHighlight(spotCode) {
+      scheduleReload();
+      // Highlight spot after reload
+      setTimeout(() => {
+        const el = document.querySelector(`.spot[data-spot-code="${spotCode}"]`);
+        if (el) {
+          el.classList.add("spot-updated");
+          setTimeout(() => el.classList.remove("spot-updated"), 2500);
+        }
+      }, 600);
+    }
     socket.on("connect_error", () => {
       // Không làm gián đoạn UI
     });

@@ -180,16 +180,47 @@ nav ul li a:hover {
   text-align: center;
 }
 .search-bar {
-  padding: 1rem;
-  text-align: center;
+  padding: 20px;
   display: none;
-}
-.search-bar input {
-  padding: 0.5rem;
-  width: 60%;
-  font-size: 1rem;
+  justify-content: center;
+  align-items: center;
 }
 
+.search-box {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #9aa0a6;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 14px 18px 14px 42px;
+  font-size: 16px;
+  border: 1px solid #dcdfe4;
+  border-radius: 14px;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
+
+.search-box input::placeholder {
+  color: #9aa0a6;
+}
+
+.search-box input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
 /* ===== PARKING LIST ===== */
 .parking-container {
   display: flex;
@@ -628,7 +659,7 @@ nav ul li a:hover {
   background: #252a34;
   border-radius: 24px;
   padding: 40px;
-  box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
   margin-top: 20px;
   overflow: hidden; /* Ngăn tràn ra ngoài viền đen */
   display: flex;
@@ -654,8 +685,8 @@ nav ul li a:hover {
 .lane {
   width: 100px;
   background: #333;
-  border-left: 2px dashed rgba(255,255,255,0.3);
-  border-right: 2px dashed rgba(255,255,255,0.3);
+  border-left: 2px dashed rgba(255, 255, 255, 0.3);
+  border-right: 2px dashed rgba(255, 255, 255, 0.3);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -666,7 +697,9 @@ nav ul li a:hover {
 .lane::before {
   content: "";
   position: absolute;
-  top: 0; bottom: 0; left: 50%;
+  top: 0;
+  bottom: 0;
+  left: 50%;
   width: 0;
   border-left: 2px solid #ffcc00; /* Yellow line */
 }
@@ -701,7 +734,7 @@ nav ul li a:hover {
 }
 
 .zone h3 {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
   padding: 8px 20px;
   border-radius: 4px;
@@ -713,7 +746,10 @@ nav ul li a:hover {
 /* ===== SPOT GRID ===== */
 .spot-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, 65px); /* Tự động xuống dòng nếu thiếu chỗ */
+  grid-template-columns: repeat(
+    auto-fit,
+    65px
+  ); /* Tự động xuống dòng nếu thiếu chỗ */
   min-width: 350px; /* Tối thiểu cho một khu */
   gap: 15px 20px;
 }
@@ -722,7 +758,7 @@ nav ul li a:hover {
 .spot {
   width: 65px;
   height: 110px;
-  border: 2px solid rgba(255,255,255,0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   position: relative;
   display: flex;
@@ -742,12 +778,12 @@ nav ul li a:hover {
 
 .spot:hover {
   border-color: #007bff;
-  background: rgba(0,123,255,0.1);
+  background: rgba(0, 123, 255, 0.1);
   transform: translateY(-2px);
 }
 
 .spot-number {
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   font-weight: bold;
 }
@@ -758,29 +794,29 @@ nav ul li a:hover {
   color: #2ecc71;
 }
 .spot.free:hover {
-  background: rgba(46,204,113,0.1);
+  background: rgba(46, 204, 113, 0.1);
 }
 
 .spot.parking {
-  background: rgba(244,67,54,0.15);
+  background: rgba(244, 67, 54, 0.15);
   border-color: #f44336;
   color: #f44336;
 }
 
 .spot.paid {
-  background: rgba(158,158,158,0.15);
+  background: rgba(158, 158, 158, 0.15);
   border-color: #9e9e9e;
   color: #9e9e9e;
 }
 
 .spot.pending {
-  background: rgba(255,193,7,0.15);
+  background: rgba(255, 193, 7, 0.15);
   border-color: #ffc107;
   color: #ffc107;
 }
 
 .spot.temp-out {
-  background: rgba(255,152,0,0.15);
+  background: rgba(255, 152, 0, 0.15);
   border-color: #ff9800;
   color: #ff9800;
 }

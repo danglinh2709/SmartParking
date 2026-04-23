@@ -171,7 +171,7 @@ exports.findByTicket = async (ticket) => {
   const res = await pool.request().input("ticket", ticket).query(`
     SELECT
       status,
-      parking_expired_at,
+      end_time,
       license_plate
     FROM ParkingReservation
     WHERE ticket = @ticket

@@ -31,8 +31,8 @@ exports.create = async (data) => {
     .input("phone", phone)
     .input("license_plate", license_plate)
     .input("vehicle_type", vehicle_type)
-    .input("start_date", start_date)
-    .input("end_date", end_date)
+    .input("start_date", new Date(start_date))
+    .input("end_date", new Date(end_date))
     .input("price", price)
     .input("notes", notes || null).query(`
       INSERT INTO LongTermTicket 
@@ -62,7 +62,7 @@ exports.update = async (id, data) => {
     .input("phone", phone)
     .input("license_plate", license_plate)
     .input("vehicle_type", vehicle_type)
-    .input("end_date", end_date)
+    .input("end_date", new Date(end_date))
     .input("status", status)
     .input("notes", notes || null).query(`
       UPDATE LongTermTicket

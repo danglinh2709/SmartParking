@@ -9,16 +9,18 @@ Dưới đây là tài liệu tổng hợp đầy đủ về luồng hoạt đ�
 Hệ thống hoạt động dựa trên 2 luồng (Làn) chính: **Làn xe vào (IN)** và **Làn xe ra (OUT)**. Nhân viên có thể linh hoạt chuyển đổi giữa 2 làn này ngay trên cùng một giao diện.
 
 ### Luồng Xe Vào (Check-in)
+
 1. **Kiểm tra / Quét vé**: Xe tới trạm, nhân viên sử dụng camera quét mã QR của vé hoặc nhập mã vé thủ công (định dạng `TICKET-xxxx`).
 2. **Xác thực vé (Pre-check)**: Hệ thống gọi API `/staff/verify-ticket` để kiểm tra vé có tồn tại, còn hạn và đúng bãi đỗ hay không. Trả về thông tin chỗ đỗ, biển số đăng ký.
 3. **Chụp ảnh**: Nhân viên nhấn "CHO XE VÀO BÃI". Hệ thống chụp 2 ảnh từ Camera trước và Camera sau của xe.
-4. **Nhận diện biển số (OCR) & Check-in**: 
+4. **Nhận diện biển số (OCR) & Check-in**:
    - Backend gọi service nhận diện biển số (AI OCR) trên cả 2 ảnh.
    - So khớp biển số nhận diện với biển số đăng ký trên vé (có áp dụng thuật toán `smartNormalize` để bỏ qua các ký tự đặc biệt, dấu gạch ngang, khoảng trắng).
-   - Nếu khớp: Lưu ảnh vào máy chủ, ghi nhận `ParkingSession` mới, đánh dấu vé đã sử dụng (`reservation.used`), đổi trạng thái ô đỗ thành *Đang có xe* (`occupied`).
+   - Nếu khớp: Lưu ảnh vào máy chủ, ghi nhận `ParkingSession` mới, đánh dấu vé đã sử dụng (`reservation.used`), đổi trạng thái ô đỗ thành _Đang có xe_ (`occupied`).
 5. **Đồng bộ thời gian thực**: Backend phát (emit) sự kiện Socket.io `PARKING_UPDATED` để cập nhật trạng thái ô đỗ trên bản đồ trực tuyến của bãi xe.
 
 ### Luồng Xe Ra (Check-out)
+
 1. **Kiểm tra thông tin**: Nhân viên chuyển sang "Làn xe ra", quét/nhập vé. Giao diện gọi API `/staff/get-checkout-ticket` để lấy thông tin phiên đỗ xe (thời gian vào, ô đỗ, biển số...).
 2. **Chụp ảnh**: Nhân viên nhấn "CHO XE RA BÃI", hệ thống tiếp tục chụp ảnh từ Camera trước và sau.
 3. **Nhận diện & Check-out**:
@@ -64,12 +66,14 @@ Hệ thống hoạt động dựa trên 2 luồng (Làn) chính: **Làn xe vào 
 ## 4. Dữ liệu Mẫu (Data Model Lifecycle)
 
 **4.1. Thông tin Vé đầu vào (Reservation Request):**
+
 - `ticket`: "TICKET-ABCD123"
 - `parking_lot_id`: 1
 - `license_plate`: "59A-12345" (Đã mua qua App thành công)
 - `spot_number`: "A1"
 
 **4.2. API Check-in / Check-out Payloads:**
+
 ```json
 {
   "ticket_code": "TICKET-ABCD123",
@@ -80,6 +84,7 @@ Hệ thống hoạt động dựa trên 2 luồng (Làn) chính: **Làn xe vào 
 ```
 
 **4.3. Logs File Lưu trữ (Evidence):**
+
 - `/uploads/parking/2026-03-27/TICKET-ABCD123_in_f.jpg` (Ảnh đầu xe lúc vào)
 - `/uploads/parking/2026-03-27/TICKET-ABCD123_in_b.jpg` (Ảnh đuôi xe lúc vào)
 
@@ -96,7 +101,7 @@ Tên File: [verify.html](file:///c:/Users/5540/OneDrive/%E3%83%89%E3%82%AD%E3%83
   - Khối hiển thị luồng Camera chuyên Quét QR Code (`#camQR`).
   - Khối **Hành động quan trọng**: Nút bấm màu Xanh "CHO XE VÀO BÃI" hoặc màu Đỏ "CHO XE RA BÃI" cực kỳ nổi bật; kèm một nút nhỏ "Chuyển sang làn xe ra/vào".
 - **Nửa phải (Right Section) - An ninh Camera**:
-  - Gồm 2 luồng Livestream lớn của **Camera Trước** (`#camFront`) và **Camera Sau** (`#camBack`) để nhân viên có thể nhìn xe trực tiếp và canh góc trước khi ấn xác nhận. 
+  - Gồm 2 luồng Livestream lớn của **Camera Trước** (`#camFront`) và **Camera Sau** (`#camBack`) để nhân viên có thể nhìn xe trực tiếp và canh góc trước khi ấn xác nhận.
 
 **Flow UI tương tác**:
 Màn hình sẽ hiển thị `⏳ Đang kiểm tra vé...` khi đang fetch API OCR, và khóa nút bấm để tránh double-click. Khi load xong sẽ chuyển thành popup Alert thông báo thành công `🚦 Barie mở xe vào/ra` hoặc hiện error đỏ ngay bên dưới nếu AI/Backend bắt lỗi gian lận.
