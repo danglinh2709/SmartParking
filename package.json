@@ -25,7 +25,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "playwright test"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",

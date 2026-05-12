@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -17,10 +17,18 @@
         <p><b>Mã vé:</b> <span id="ticketCode"></span></p>
         <p><b>Bãi xe:</b> <span id="parkingName"></span></p>
         <p><b>Biển số:</b> <span id="licensePlate">—</span></p>
+        <p><b>Loại xe:</b> <span id="vehicleType">—</span></p>
 
         <p><b>Vị trí:</b> <span id="spotNumber"></span></p>
         <p><b>Thời gian vào:</b> <span id="startTime"></span></p>
         <p><b>Hiệu lực đến:</b> <span id="endTime"></span></p>
+        <p>
+          <b>Tổng tiền đã trả:</b>
+          <span
+            id="amountPaid"
+            style="color: #22c55e; font-weight: bold"
+          ></span>
+        </p>
 
         <img id="qrTicket" alt="QR Ticket" />
       </div>
@@ -29,6 +37,16 @@
         <button onclick="saveTicket()">💾 Lưu vé</button>
         <button onclick="downloadQR()">📥 Tải QR</button>
         <button onclick="goHome()">🏠 Trang chủ</button>
+        <div
+          id="redirectMessage"
+          style="margin-top: 15px; font-size: 14px; color: #666; display: none"
+        >
+          Tự động quay về trang bãi đỗ sau
+          <span id="redirectTimer" style="font-weight: bold; color: #d97706"
+            >30</span
+          >
+          giây...
+        </div>
       </div>
     </div>
 

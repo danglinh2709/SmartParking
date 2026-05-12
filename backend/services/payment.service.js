@@ -20,17 +20,20 @@ exports.payReservation = async ({ ticket }, ip) => {
 
   const pool = await poolPromise;
 
-  // Lấy thông tin bãi đỗ hiện tại để tính giá động
-  const lotRes = await pool.request().input("id", reservation.parking_lot_id)
-    .query(`
-    SELECT total_spots, available_spots FROM ParkingLot WHERE id = @id
-  `);
-  const lot = lotRes.recordset[0];
-  const currentPricePerHour = lot
-    ? calculateDynamicPrice(lot.total_spots, lot.available_spots)
-    : 10000;
+  // Lấy giá động từ bảng Pricing
+  const pricingRes = await pool.request()
+    .input("zone", reservation.zone_id)
+    .input("type", reservation.vehicle_type)
+    .query(`SELECT TOP 1 hourly_rate FROM Pricing WHERE zone_id = @zone AND vehicle_type = @type`);
 
+  const currentPricePerHour = pricingRes.recordset.length > 0 ? pricingRes.recordset[0].hourly_rate : 10000;
   const amount = hours * currentPricePerHour;
+
+  // Cập nhật số tiền gốc vào Reservation
+  await pool.request()
+    .input("ticket", ticket)
+    .input("amount", amount)
+    .query(`UPDATE ParkingReservation SET amount = @amount WHERE ticket = @ticket`);
 
   const { paymentUrl, vnp_TxnRef } = createPaymentUrl({
     ticket,

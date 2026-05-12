@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ========= GUARD ========= */
   const token = localStorage.getItem("sp_token");
   const lotId = localStorage.getItem("managed_parking_lot");
+  const lotName = localStorage.getItem("managed_parking_name");
 
   const API = "http://localhost:5000/api";
   const parkingLotId = Number(lotId);
@@ -14,40 +15,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ========= DOM ========= */
   const logoutBtn = document.getElementById("logoutBtn");
+  const lotDisplayName = document.getElementById("lotDisplayName");
+  const staffName = document.getElementById("staffName");
+  const userRoleEl = document.getElementById("userRole");
 
   const statTotal = document.getElementById("stat-total");
   const statFree = document.getElementById("stat-free");
   const statOccupied = document.getElementById("stat-occupied");
   const statReserved = document.getElementById("stat-reserved");
   const statMaintenance = document.getElementById("stat-maintenance");
-  const alertCard = document.getElementById("alert-card");
-  const statAlerts = document.getElementById("stat-alerts");
 
   const searchSpot = document.getElementById("searchSpot");
   const filterStatus = document.getElementById("filterStatus");
   const sortBy = document.getElementById("sortBy");
   const btnExport = document.getElementById("btnExport");
-  const spotGrid = document.getElementById("spotGrid");
+  const zoneContainer = document.getElementById("zoneContainer");
   const paginationEl = document.getElementById("pagination");
-
-  const hoverCard = document.getElementById("hoverCard");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const updatingIndicator = document.getElementById("updatingIndicator");
+  const slotHoverCard = document.getElementById("slotHoverCard");
   const hoverCode = document.getElementById("hoverCode");
-  const hoverBadge = document.getElementById("hoverBadge");
+  const hoverStatus = document.getElementById("hoverStatus");
   const hoverPlate = document.getElementById("hoverPlate");
-  const hoverName = document.getElementById("hoverName");
   const hoverTime = document.getElementById("hoverTime");
 
   const detailModal = document.getElementById("detailModal");
   const modalClose = detailModal.querySelector(".close");
   const modalTitle = document.getElementById("modalTitle");
-  const modalStatus = document.getElementById("modalStatus");
-  const customerInfo = document.getElementById("customerInfo");
+  const modalStatusBadge = document.getElementById("modalStatusBadge");
   const modalCustomer = document.getElementById("modalCustomer");
   const modalPhone = document.getElementById("modalPhone");
   const modalPlate = document.getElementById("modalPlate");
   const modalTime = document.getElementById("modalTime");
-  const modalTicket = document.getElementById("modalTicket");
   const modalEndTime = document.getElementById("modalEndTime");
+  const modalVehicleType = document.getElementById("modalVehicleType");
+
   const btnLockSpot = document.getElementById("btnLockSpot");
   const btnMaintSpot = document.getElementById("btnMaintSpot");
   const btnUnlockSpot = document.getElementById("btnUnlockSpot");
@@ -55,455 +57,451 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ========= STATE ========= */
   let allSpots = [];
+  let allZones = [];
   let filteredSpots = [];
   let currentPage = 1;
-  const pageSize = 24;
+  const pageSize = 30; // Increased to show more slots at once
   let selectedSpot = null;
   let isLoading = false;
-  let reloadTimer = null;
   let searchDebounce = null;
 
+  /* ========= INIT UI ========= */
+  if (lotDisplayName) lotDisplayName.textContent = lotName || "Smart Parking System";
+  if (staffName) staffName.textContent = localStorage.getItem("sp_staff_name") || "Operator";
+  if (userRoleEl) userRoleEl.textContent = localStorage.getItem("sp_role") || "Staff Operator";
+
   /* ========= HELPERS ========= */
-  const safeText = (v) => (v === null || v === undefined || v === "" ? "-" : String(v));
+  const safeText = (v) =>
+    v === null || v === undefined || v === "" ? "-" : String(v);
 
   function formatDateTime(value) {
     if (!value) return "-";
     const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleString("vi-VN");
-  }
-
-  function formatMaybeDateTime(value) {
-    if (!value) return "-";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleString("vi-VN");
+    return isNaN(d.getTime())
+      ? "-"
+      : d.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
   }
 
   function showToast(message, type = "info") {
     const container = document.getElementById("toastContainer");
-    if (!container) return;
-
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    
-    const icon = type === "success" ? "fa-check-circle" : 
-                 type === "error" ? "fa-exclamation-circle" : "fa-info-circle";
-    
-    toast.innerHTML = `
-      <i class="fas ${icon}"></i>
-      <span>${message}</span>
-    `;
-
+    const icon =
+      type === "success"
+        ? "fa-circle-check"
+        : type === "error"
+          ? "fa-circle-exclamation"
+          : "fa-circle-info";
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
     container.appendChild(toast);
-
-    // Trigger animation
     setTimeout(() => toast.classList.add("show"), 10);
-
-    // Auto remove
     setTimeout(() => {
       toast.classList.remove("show");
       setTimeout(() => toast.remove(), 300);
-    }, 4000);
-  }
-
-  function normalizeForSearch(text) {
-    return String(text || "")
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "");
+    }, 3000);
   }
 
   function getSpotEffectiveState(spot) {
     const admin = (spot.admin_status || "").toUpperCase();
     const dyn = spot.spot_status || spot.status;
-
-    if (admin === "LOCKED") return { key: "LOCKED", badge: "Đã khóa", className: "locked" };
-    if (admin === "MAINTENANCE") {
-      return { key: "MAINTENANCE", badge: "Bảo trì", className: "maintenance" };
-    }
-
+    if (admin === "LOCKED")
+      return {
+        key: "LOCKED",
+        badge: "Locked",
+        className: "locked",
+        icon: "fa-lock",
+      };
+    if (admin === "MAINTENANCE")
+      return {
+        key: "MAINTENANCE",
+        badge: "Maint.",
+        className: "maintenance",
+        icon: "fa-screwdriver-wrench",
+      };
     switch (dyn) {
       case "FREE":
-        return { key: "FREE", badge: "Trống", className: "free" };
+        return {
+          key: "FREE",
+          badge: "Available",
+          className: "free",
+          icon: "fa-parking",
+        };
       case "OCCUPIED":
-        return { key: "OCCUPIED", badge: "Đang đỗ", className: "occupied" };
+        return {
+          key: "OCCUPIED",
+          badge: "Occupied",
+          className: "occupied",
+          icon: "fa-car",
+        };
       case "PENDING":
-        return { key: "PENDING", badge: "Đặt trước", className: "pending" };
       case "PAID":
-        return { key: "PAID", badge: "Đã đặt trước", className: "paid" };
-      case "TEMP_OUT":
-        return { key: "TEMP_OUT", badge: "Đã đỗ", className: "paid" };
+        return {
+          key: "PAID",
+          badge: "Reserved",
+          className: "paid",
+          icon: "fa-calendar-check",
+        };
       default:
-        return { key: "FREE", badge: "Trống", className: "free" };
+        return {
+          key: "FREE",
+          badge: "Available",
+          className: "free",
+          icon: "fa-parking",
+        };
     }
-  }
-
-  function getHoverTimeText(spot) {
-    const state = getSpotEffectiveState(spot);
-    if (state.key === "FREE" || state.key === "LOCKED" || state.key === "MAINTENANCE") return "-";
-
-    if (state.key === "OCCUPIED") {
-      return `Vào: ${formatMaybeDateTime(spot.checkin_time)}`;
-    }
-
-    if (state.key === "PENDING" || state.key === "PAID" || state.key === "TEMP_OUT") {
-      const start = formatMaybeDateTime(spot.start_time);
-      const end = formatMaybeDateTime(spot.end_time);
-      if (spot.spot_status === "TEMP_OUT") return `Đến: ${end}`;
-      return `Từ ${start} đến ${end}`;
-    }
-
-    return "-";
-  }
-
-  function getCardBadgeText(spot) {
-    return getSpotEffectiveState(spot).badge;
-  }
-
-  function getSpotSearchText(spot) {
-    return normalizeForSearch([
-      spot.spot_code,
-      spot.license_plate,
-      spot.ticket_code,
-      spot.customer_name,
-      spot.customer_phone || spot.phone,
-    ].join(" "));
-  }
-
-  function getSortTimeForSpot(spot) {
-    if (spot.admin_status && spot.admin_status !== "NORMAL") return null;
-    if (spot.spot_status === "OCCUPIED") return spot.checkin_time || null;
-    if (spot.spot_status === "PENDING" || spot.spot_status === "PAID") return spot.start_time || null;
-    if (spot.spot_status === "TEMP_OUT") return spot.end_time || spot.checkout_time || null;
-    return null;
   }
 
   /* ========= API ========= */
-  async function loadSpots() {
+  async function loadSpots(silent = false) {
     if (isLoading) return;
-    isLoading = true;
+    if (!silent) {
+      isLoading = true;
+      updatingIndicator.classList.add("active");
+    }
     try {
-      spotGrid.innerHTML = `<div class="loading">Đang tải dữ liệu...</div>`;
+      const [resSpots, resZones, resLot] = await Promise.all([
+        fetch(`${API}/parking-lots/${parkingLotId}/spot-status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API}/parking-lots/${parkingLotId}/zones-pricing`),
+        fetch(`${API}/parking-lots/${parkingLotId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      const res = await fetch(`${API}/parking-lots/${parkingLotId}/spot-status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const data = await resSpots.json();
+      if (!resSpots.ok) throw new Error(data.msg || "Fetch failed");
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || "Tải dữ liệu thất bại");
+      allZones = resZones.ok ? await resZones.json() : [];
+      const lotData = resLot.ok ? await resLot.json() : null;
+      const totalCapacity = lotData ? lotData.total_spots : 300;
 
-      allSpots = Array.isArray(data) ? data : [];
+      allSpots = (Array.isArray(data) ? data : []).slice(0, totalCapacity);
+      
       applyFiltersAndRender();
     } catch (err) {
-      spotGrid.innerHTML = `<div class="loading">Lỗi tải dữ liệu: ${safeText(err.message)}</div>`;
-      allSpots = [];
-      filteredSpots = [];
-      renderStatsFromSpots([]);
+      console.error(err);
+      if (!silent) {
+        if (zoneContainer) zoneContainer.innerHTML = `<div class="loading">Error: ${err.message}</div>`;
+      }
     } finally {
       isLoading = false;
+      updatingIndicator.classList.remove("active");
     }
   }
 
-  async function setSpotAdminStatus(nextStatus) {
-    if (!selectedSpot) return;
-    if (!selectedSpot.id) {
-      alert("Không có id ô đỗ để cập nhật trạng thái");
-      return;
-    }
-
-    const res = await fetch(`${API}/parking-spots/${selectedSpot.id}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: nextStatus }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.msg || "Cập nhật trạng thái thất bại");
-    return data;
-  }
-
-  /* ========= FILTER + SORT + RENDER ========= */
+  /* ========= FILTER + RENDER ========= */
   function applyFiltersAndRender() {
-    const q = normalizeForSearch(searchSpot?.value || "");
+    const q = (searchSpot?.value || "").toLowerCase().trim();
     const filter = filterStatus?.value || "ALL";
     const sortKey = sortBy?.value || "code";
 
     let list = [...allSpots];
 
     if (q) {
-      list = list.filter((s) => getSpotSearchText(s).includes(q));
+      list = list.filter(
+        (s) =>
+          (s.spot_code + "").toLowerCase().includes(q) ||
+          (s.license_plate + "").toLowerCase().includes(q) ||
+          (s.customer_name + "").toLowerCase().includes(q),
+      );
     }
 
     if (filter !== "ALL") {
       list = list.filter((s) => {
-        const admin = (s.admin_status || "").toUpperCase();
-        const dyn = s.spot_status;
-
-        if (filter === "FREE") return admin !== "LOCKED" && admin !== "MAINTENANCE" && dyn === "FREE";
-        if (filter === "OCCUPIED") return admin !== "LOCKED" && admin !== "MAINTENANCE" && dyn === "OCCUPIED";
-        if (filter === "PAID") return admin !== "LOCKED" && admin !== "MAINTENANCE" && (dyn === "PAID" || dyn === "PENDING" || dyn === "TEMP_OUT");
-        if (filter === "MAINTENANCE") return admin === "MAINTENANCE";
-        if (filter === "LOCKED") return admin === "LOCKED";
-        return true;
+        const state = getSpotEffectiveState(s).key;
+        return state === filter;
       });
     }
 
     list.sort((a, b) => {
-      if (sortKey === "code") return Number(a.spot_code) - Number(b.spot_code);
+      if (sortKey === "code")
+        return (a.spot_code + "").localeCompare(b.spot_code + "", undefined, {
+          numeric: true,
+        });
       if (sortKey === "status") {
-        const ra = getSpotEffectiveState(a).className;
-        const rb = getSpotEffectiveState(b).className;
-        const rank = { locked: 5, maintenance: 4, occupied: 3, paid: 2, pending: 1, free: 0 };
-        return (rank[rb] ?? 0) - (rank[ra] ?? 0);
+        const rank = {
+          LOCKED: 5,
+          MAINTENANCE: 4,
+          OCCUPIED: 3,
+          PAID: 2,
+          FREE: 1,
+        };
+        return (
+          rank[getSpotEffectiveState(b).key] -
+          rank[getSpotEffectiveState(a).key]
+        );
       }
       if (sortKey === "time") {
-        const ta = getSortTimeForSpot(a);
-        const tb = getSortTimeForSpot(b);
-        if (!ta && !tb) return 0;
-        if (!ta) return 1;
-        if (!tb) return -1;
-        return new Date(ta) - new Date(tb);
+        const ta = a.checkin_time || a.start_time || 0;
+        const tb = b.checkin_time || b.start_time || 0;
+        return new Date(tb) - new Date(ta);
       }
       return 0;
     });
 
     filteredSpots = list;
-    renderStatsFromSpots(list);
+    renderStats();
     renderCurrentPage();
+  }
+
+  function renderStats() {
+    const counts = allSpots.reduce(
+      (acc, s) => {
+        const key = getSpotEffectiveState(s).key;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      },
+      { TOTAL: allSpots.length },
+    );
+
+    statTotal.textContent = counts.TOTAL || 0;
+    statFree.textContent = counts.FREE || 0;
+    statOccupied.textContent = counts.OCCUPIED || 0;
+    statReserved.textContent = counts.PAID || 0;
+    statMaintenance.textContent =
+      (counts.MAINTENANCE || 0) + (counts.LOCKED || 0);
   }
 
   function renderCurrentPage() {
     const totalPages = Math.max(1, Math.ceil(filteredSpots.length / pageSize));
     if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
 
     const start = (currentPage - 1) * pageSize;
-    const end = start + pageSize;
-    const pageList = filteredSpots.slice(start, end);
+    const pageList = filteredSpots.slice(start, start + pageSize);
 
-    renderPaginationControls(totalPages);
-    renderSpots(pageList);
+    renderPagination(totalPages);
+    renderZoneSplitGrids(pageList);
   }
 
-  function renderPaginationControls(totalPages) {
-    if (!paginationEl) return;
-    paginationEl.innerHTML = "";
-
-    const makeBtn = ({ label, page, disabled, active }) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = label;
-      btn.disabled = disabled === true;
-      if (active) btn.classList.add("active");
-      if (!disabled && typeof page === "number") {
-        btn.addEventListener("click", () => {
-          currentPage = page;
-          renderCurrentPage();
-        });
-      }
-      return btn;
-    };
-
-    paginationEl.appendChild(
-      makeBtn({
-        label: "Trang trước",
-        page: currentPage - 1,
-        disabled: currentPage <= 1,
-      }),
-    );
-
-    // Nếu ít trang thì show toàn bộ; nếu nhiều thì show đoạn quanh current.
-    const pagesToShow =
-      totalPages <= 7
-        ? Array.from({ length: totalPages }, (_, i) => i + 1)
-        : (() => {
-            const start = Math.max(1, currentPage - 2);
-            const end = Math.min(totalPages, currentPage + 2);
-            const arr = [];
-            for (let p = start; p <= end; p++) arr.push(p);
-            return arr;
-          })();
-
-    if (pagesToShow[0] !== 1) {
-      paginationEl.appendChild(
-        makeBtn({ label: "1", page: 1, disabled: false, active: currentPage === 1 }),
-      );
-      if (pagesToShow[0] > 2) paginationEl.appendChild(document.createTextNode("... "));
-    }
-
-    pagesToShow.forEach((p) => {
-      paginationEl.appendChild(
-        makeBtn({
-          label: String(p),
-          page: p,
-          disabled: false,
-          active: p === currentPage,
-        }),
-      );
-    });
-
-    if (pagesToShow[pagesToShow.length - 1] !== totalPages) {
-      if (pagesToShow[pagesToShow.length - 1] < totalPages - 1) paginationEl.appendChild(document.createTextNode("... "));
-      paginationEl.appendChild(
-        makeBtn({
-          label: String(totalPages),
-          page: totalPages,
-          disabled: false,
-          active: currentPage === totalPages,
-        }),
-      );
-    }
-
-    paginationEl.appendChild(
-      makeBtn({
-        label: "Trang sau",
-        page: currentPage + 1,
-        disabled: currentPage >= totalPages,
-      }),
-    );
-  }
-
-  function renderStatsFromSpots(list) {
-    const total = list.length;
-    const free = list.filter((s) => (s.admin_status || "").toUpperCase() !== "LOCKED" && (s.admin_status || "").toUpperCase() !== "MAINTENANCE" && s.spot_status === "FREE").length;
-    const occupied = list.filter((s) => (s.admin_status || "").toUpperCase() !== "LOCKED" && (s.admin_status || "").toUpperCase() !== "MAINTENANCE" && s.spot_status === "OCCUPIED").length;
-    const reserved = list.filter((s) => {
-      const dyn = s.spot_status;
-      const admin = (s.admin_status || "").toUpperCase();
-      return admin !== "LOCKED" && admin !== "MAINTENANCE" && (dyn === "PAID" || dyn === "PENDING" || dyn === "TEMP_OUT");
-    }).length;
-    const maintenanceOrLocked = list.filter((s) => {
-      const admin = (s.admin_status || "").toUpperCase();
-      return admin === "LOCKED" || admin === "MAINTENANCE";
-    }).length;
-
-    if (statTotal) statTotal.textContent = String(total);
-    if (statFree) statFree.textContent = String(free);
-    if (statOccupied) statOccupied.textContent = String(occupied);
-    if (statReserved) statReserved.textContent = String(reserved);
-    if (statMaintenance) statMaintenance.textContent = String(maintenanceOrLocked);
-
-    // Alert card: chưa có trường cảnh báo cụ thể => tắt mặc định
-    if (alertCard && statAlerts) {
-      const alerts = 0;
-      statAlerts.textContent = String(alerts);
-      alertCard.style.display = alerts > 0 ? "flex" : "none";
-    }
-  }
-
-  function renderSpots(list) {
-    spotGrid.innerHTML = "";
+  function renderZoneSplitGrids(list) {
+    if (zoneContainer) zoneContainer.innerHTML = "";
 
     if (!list.length) {
-      spotGrid.innerHTML = `<div class="loading">Không có ô đỗ phù hợp</div>`;
+      if (zoneContainer) zoneContainer.innerHTML = `<div class="loading">No matching slots</div>`;
       return;
     }
 
-    list.forEach((spot) => {
-      const state = getSpotEffectiveState(spot);
-      const card = document.createElement("div");
-      card.className = `spot ${state.className}`;
-      card.dataset.spotCode = String(spot.spot_code);
+    // Group by Zone
+    const zonesInPage = [...new Set(list.map((s) => s.zone_id))];
+    
+    zonesInPage.forEach((zoneId) => {
+      const zone = allZones.find((z) => z.id === zoneId);
+      const zoneSpotsInPage = list.filter((s) => s.zone_id === zoneId);
+      
+      // Get all spots in this zone from allSpots for stable classification
+      const allSpotsInThisZone = allSpots
+        .filter(s => s.zone_id === zoneId)
+        .sort((a, b) => (a.spot_code + "").localeCompare(b.spot_code + "", undefined, { numeric: true }));
+      
+      const carCount = Math.floor(allSpotsInThisZone.length * 0.2);
+      const carCodes = allSpotsInThisZone.slice(0, carCount).map(s => s.spot_code);
 
-      const plateText = safeText(spot.license_plate || spot.plate_number);
-      const badge = getCardBadgeText(spot);
+      const zoneCard = document.createElement("div");
+      zoneCard.className = "zone-card";
 
-      // Card nội dung tối giản, tooltip/modal mới hiển thị chi tiết
-      card.innerHTML = `
-        <span class="spot-code">#${spot.spot_code}</span>
-        <span class="spot-status">${badge}</span>
-        <span class="plate">${state.key === "FREE" ? "" : plateText}</span>
+      const isBicycleZone = (zone?.supported_vehicles || "").toUpperCase() === "BICYCLE";
+
+      zoneCard.innerHTML = `
+        <div class="zone-header">
+          <div class="zone-title-group">
+            <span class="zone-title">Zone ${zone ? zone.name : "Unknown"}</span>
+            <span class="zone-tag tag-covered">${zone ? zone.zone_type : "N/A"}</span>
+          </div>
+          <div class="zone-stats"><b>${zoneSpotsInPage.length}</b> slots in view</div>
+        </div>
+        <div class="zone-body ${isBicycleZone ? 'single-grid' : 'split-grid'}">
+          ${isBicycleZone ? `
+            <div class="grid-full">
+              <div class="grid-header"><i class="fas fa-bicycle"></i> Bicycle Area</div>
+              <div class="slot-grid-container" id="grid-full-${zoneId}"></div>
+            </div>
+          ` : `
+            <div class="grid-car">
+              <div class="grid-header"><i class="fas fa-car"></i> Car Area (20%)</div>
+              <div class="slot-grid-container" id="grid-car-${zoneId}"></div>
+            </div>
+            <div class="grid-bike">
+              <div class="grid-header"><i class="fas fa-motorcycle"></i> Motorbike Area (80%)</div>
+              <div class="slot-grid-container" id="grid-bike-${zoneId}"></div>
+            </div>
+          `}
+        </div>
       `;
 
-      card.addEventListener("mouseenter", (e) => showHover(spot, e));
-      card.addEventListener("mousemove", (e) => positionHover(e));
-      card.addEventListener("mouseleave", hideHover);
-      card.addEventListener("click", () => openModal(spot));
+      zoneContainer.appendChild(zoneCard);
 
-      spotGrid.appendChild(card);
+      const gridFull = zoneCard.querySelector(`#grid-full-${zoneId}`);
+      const gridCar = zoneCard.querySelector(`#grid-car-${zoneId}`);
+      const gridBike = zoneCard.querySelector(`#grid-bike-${zoneId}`);
+
+      zoneSpotsInPage.forEach((spot) => {
+        const isCar = carCodes.includes(spot.spot_code);
+        spot.classifiedType = isCar ? "Car" : "Motorbike";
+        
+        let targetGrid = gridFull;
+        if (!isBicycleZone) {
+          targetGrid = isCar ? gridCar : gridBike;
+        }
+        
+        if (targetGrid) appendSlot(targetGrid, spot, zone);
+      });
     });
   }
 
-  /* ========= HOVER CARD ========= */
-  function showHover(spot, event) {
-    hoverCard.style.display = "block";
-    hoverCode.textContent = `#${spot.spot_code}`;
-
+  function appendSlot(container, spot, zone) {
     const state = getSpotEffectiveState(spot);
-    hoverBadge.textContent = state.badge;
+    const slot = document.createElement("div");
+    slot.className = `slot ${state.className}`;
+    slot.dataset.code = spot.spot_code;
 
-    hoverPlate.textContent = safeText(spot.license_plate || spot.plate_number);
-    hoverName.textContent = safeText(spot.customer_name || spot.name);
-    hoverTime.textContent = getHoverTimeText(spot);
+    const displayCode = zone
+      ? `${zone.name}-${spot.spot_code}`
+      : spot.spot_code;
+    const plate = spot.license_plate || spot.plate_number;
 
-    positionHover(event);
+    slot.innerHTML = `
+      <span class="slot-code">${displayCode}</span>
+      <i class="fas ${state.icon} slot-icon"></i>
+      <span class="slot-status">${state.badge}</span>
+      ${plate ? `<span class="plate-badge">${plate}</span>` : ""}
+      <div class="quick-actions">
+        <button class="action-btn view-btn"><i class="fas fa-eye"></i> Details</button>
+        <button class="action-btn lock-btn"><i class="fas fa-lock"></i> ${state.key === "LOCKED" ? "Unlock" : "Lock"}</button>
+      </div>
+    `;
+
+    slot.querySelector(".view-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openModal(spot);
+    });
+
+    slot.querySelector(".lock-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      const next = state.key === "LOCKED" ? "NORMAL" : "LOCKED";
+      runAdminAction(spot, next);
+    });
+
+    // Hover Events for Form Info
+    slot.addEventListener("mouseenter", (e) => {
+      showHoverCard(spot, e);
+    });
+
+    slot.addEventListener("mousemove", (e) => {
+      moveHoverCard(e);
+    });
+
+    slot.addEventListener("mouseleave", () => {
+      hideHoverCard();
+    });
+
+    slot.addEventListener("click", () => openModal(spot));
+    container.appendChild(slot);
   }
 
-  function positionHover(event) {
-    const offset = 14;
-    hoverCard.style.left = `${event.pageX + offset}px`;
-    hoverCard.style.top = `${event.pageY + offset}px`;
+  /* ========= HOVER CARD LOGIC ========= */
+  function showHoverCard(spot, event) {
+    const state = getSpotEffectiveState(spot);
+    hoverCode.textContent = spot.zone_name ? `${spot.zone_name}-${spot.spot_code}` : spot.spot_code;
+    hoverStatus.textContent = state.badge;
+    hoverStatus.className = `status-badge ${state.className}`;
+    
+    hoverPlate.textContent = spot.license_plate || spot.plate_number || "-";
+    
+    const time = spot.checkin_time || spot.start_time;
+    hoverTime.textContent = time ? new Date(time).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "-";
+
+    slotHoverCard.classList.add("show");
   }
 
-  function hideHover() {
-    hoverCard.style.display = "none";
+  function moveHoverCard(event) {
+    const x = event.clientX + 15;
+    const y = event.clientY + 15;
+    
+    // Boundary check
+    const cardWidth = slotHoverCard.offsetWidth;
+    const cardHeight = slotHoverCard.offsetHeight;
+    const winWidth = window.innerWidth;
+    const winHeight = window.innerHeight;
+
+    let finalX = x;
+    let finalY = y;
+
+    if (x + cardWidth > winWidth) finalX = event.clientX - cardWidth - 15;
+    if (y + cardHeight > winHeight) finalY = event.clientY - cardHeight - 15;
+
+    slotHoverCard.style.left = `${finalX}px`;
+    slotHoverCard.style.top = `${finalY}px`;
+  }
+
+  function hideHoverCard() {
+    slotHoverCard.classList.remove("show");
+  }
+
+  function renderPagination(totalPages) {
+    paginationEl.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const createBtn = (label, page, active = false) => {
+      const btn = document.createElement("button");
+      btn.textContent = label;
+      if (active) btn.classList.add("active");
+      btn.onclick = () => {
+        currentPage = page;
+        renderCurrentPage();
+      };
+      return btn;
+    };
+
+    paginationEl.appendChild(createBtn("<", Math.max(1, currentPage - 1)));
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        paginationEl.appendChild(createBtn(i, i, i === currentPage));
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        const dot = document.createElement("span");
+        dot.textContent = "...";
+        dot.style.padding = "0 8px";
+        paginationEl.appendChild(dot);
+      }
+    }
+    paginationEl.appendChild(
+      createBtn(">", Math.min(totalPages, currentPage + 1)),
+    );
   }
 
   /* ========= MODAL ========= */
   function openModal(spot) {
     selectedSpot = spot;
-
     const state = getSpotEffectiveState(spot);
-    modalTitle.textContent = `Thông tin ô đỗ #${spot.spot_code}`;
-    modalStatus.textContent = state.badge;
+    modalTitle.textContent = `Slot ${spot.zone_name ? spot.zone_name + "-" : ""}${spot.spot_code}`;
+    modalStatusBadge.textContent = state.badge;
+    modalStatusBadge.className = `zone-tag ${state.className}`;
 
-    const hasCustomerData =
-      !!spot.ticket_code ||
-      !!spot.license_plate ||
-      !!spot.customer_name ||
-      !!spot.phone ||
-      !!spot.start_time ||
-      !!spot.end_time ||
-      !!spot.checkin_time;
-
-    customerInfo.style.display = hasCustomerData ? "block" : "none";
-
-    modalCustomer.textContent = safeText(spot.customer_name || spot.name);
+    modalCustomer.textContent = safeText(spot.customer_name);
     modalPhone.textContent = safeText(spot.phone || spot.customer_phone);
     modalPlate.textContent = safeText(spot.license_plate || spot.plate_number);
+    modalVehicleType.textContent = spot.classifiedType || safeText(
+      spot.current_vehicle_type || spot.supported_vehicles,
+    );
+    modalTime.textContent = formatDateTime(
+      spot.checkin_time || spot.start_time,
+    );
+    modalEndTime.textContent = formatDateTime(spot.end_time);
 
-    const timeText =
-      spot.spot_status === "OCCUPIED"
-        ? formatMaybeDateTime(spot.checkin_time)
-        : formatMaybeDateTime(spot.start_time);
-
-    modalTime.textContent = timeText;
-    modalTicket.textContent = safeText(spot.ticket_code || spot.ticket);
-
-    const endText =
-      spot.spot_status === "OCCUPIED"
-        ? formatMaybeDateTime(spot.end_time)
-        : formatMaybeDateTime(spot.end_time || spot.checkout_time);
-    modalEndTime.textContent = endText;
-
-    // Buttons
     const admin = (spot.admin_status || "NORMAL").toUpperCase();
     btnLockSpot.style.display = admin === "LOCKED" ? "none" : "inline-block";
     btnUnlockSpot.style.display = admin === "LOCKED" ? "inline-block" : "none";
-    btnMaintSpot.style.display = admin === "MAINTENANCE" ? "none" : "inline-block";
-    
-    // Show Release button if spot is Occupied, Paid, or Pending
-    const canRelease = spot.spot_status === "OCCUPIED" || 
-                       spot.spot_status === "PAID" || 
-                       spot.spot_status === "PENDING" ||
-                       spot.spot_status === "TEMP_OUT";
+
+    const canRelease = ["OCCUPIED", "PAID", "PENDING", "TEMP_OUT"].includes(
+      spot.spot_status,
+    );
     btnReleaseSpot.style.display = canRelease ? "inline-block" : "none";
 
-    detailModal.style.display = "block";
+    detailModal.style.display = "flex";
   }
 
   function closeModal() {
@@ -511,187 +509,113 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedSpot = null;
   }
 
-  modalClose?.addEventListener("click", closeModal);
-  detailModal.addEventListener("click", (e) => {
+  modalClose.onclick = closeModal;
+  window.onclick = (e) => {
     if (e.target === detailModal) closeModal();
-  });
+  };
 
-  /* ========= ACTIONS: LOCK / MAINT / UNLOCK ========= */
-  async function runAction(actionStatus) {
-    if (!selectedSpot) return;
+  /* ========= ACTIONS ========= */
+  async function runAdminAction(spot, nextStatus) {
     try {
-      btnLockSpot.disabled = true;
-      btnMaintSpot.disabled = true;
-      btnUnlockSpot.disabled = true;
-
-      await setSpotAdminStatus(actionStatus);
-      // Reload toàn bộ để đồng bộ trạng thái từ backend
-      await loadSpots();
-      closeModal();
+      updatingIndicator.classList.add("active");
+      const res = await fetch(`${API}/parking-spots/${spot.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (!res.ok) throw new Error("Update failed");
+      showToast(`Slot ${spot.spot_code} updated to ${nextStatus}`, "success");
+      await loadSpots(true);
+      if (selectedSpot) closeModal();
     } catch (err) {
-      alert(safeText(err.message));
+      showToast(err.message, "error");
     } finally {
-      btnLockSpot.disabled = false;
-      btnMaintSpot.disabled = false;
-      btnUnlockSpot.disabled = false;
+      updatingIndicator.classList.remove("active");
     }
   }
-
-  btnLockSpot?.addEventListener("click", () => runAction("LOCKED"));
-  btnUnlockSpot?.addEventListener("click", () => runAction("NORMAL"));
-  btnMaintSpot?.addEventListener("click", () => runAction("MAINTENANCE"));
 
   async function runReleaseAction() {
-    if (!selectedSpot) return;
-    if (!confirm(`Bạn có chắc muốn giải phóng ô đỗ #${selectedSpot.spot_code}?\nHành động này sẽ hủy vé và kết thúc phiên hiện tại.`)) return;
-
+    if (
+      !selectedSpot ||
+      !confirm(`Force release slot ${selectedSpot.spot_code}?`)
+    )
+      return;
     try {
-      btnReleaseSpot.disabled = true;
-      const res = await fetch(`${API}/parking-spots/${selectedSpot.id}/force-release`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || "Giải phóng thất bại");
-
-      showToast(`Giải phóng ô đỗ #${selectedSpot.spot_code} thành công`, "success");
-      await loadSpots();
+      updatingIndicator.classList.add("active");
+      const res = await fetch(
+        `${API}/parking-spots/${selectedSpot.id}/force-release`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!res.ok) throw new Error("Release failed");
+      showToast(`Slot ${selectedSpot.spot_code} released`, "success");
+      await loadSpots(true);
       closeModal();
     } catch (err) {
-      alert(safeText(err.message));
+      showToast(err.message, "error");
     } finally {
-      btnReleaseSpot.disabled = false;
+      updatingIndicator.classList.remove("active");
     }
   }
 
-  btnReleaseSpot?.addEventListener("click", runReleaseAction);
+  btnLockSpot.onclick = () => runAdminAction(selectedSpot, "LOCKED");
+  btnUnlockSpot.onclick = () => runAdminAction(selectedSpot, "NORMAL");
+  btnMaintSpot.onclick = () => runAdminAction(selectedSpot, "MAINTENANCE");
+  btnReleaseSpot.onclick = runReleaseAction;
 
-  /* ========= EXPORT CSV ========= */
-  function exportCSV() {
+  /* ========= EVENTS ========= */
+  searchSpot.oninput = () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      currentPage = 1;
+      applyFiltersAndRender();
+    }, 200);
+  };
+  filterStatus.onchange = () => {
+    currentPage = 1;
+    applyFiltersAndRender();
+  };
+  sortBy.onchange = () => applyFiltersAndRender();
+  refreshBtn.onclick = () => loadSpots();
+  logoutBtn.onclick = () => {
+    localStorage.clear();
+    location.href = "../login/dangnhap.html";
+  };
+
+  btnExport.onclick = () => {
     const list = filteredSpots.length ? filteredSpots : allSpots;
-
-    const headers = [
-      "spot_code",
-      "status",
-      "ticket_code",
-      "license_plate",
-      "customer_name",
-      "phone",
-      "start_time",
-      "end_time",
-      "checkin_time",
-      "checkout_time",
-      "admin_status",
-    ];
-
-    const rows = list.map((spot) => {
-      const state = getSpotEffectiveState(spot).key;
-      return [
-        spot.spot_code,
-        state,
-        spot.ticket_code || spot.ticket || "",
-        spot.license_plate || spot.plate_number || "",
-        spot.customer_name || spot.name || "",
-        spot.phone || spot.customer_phone || "",
-        spot.start_time || "",
-        spot.end_time || "",
-        spot.checkin_time || "",
-        spot.checkout_time || "",
-        spot.admin_status || "NORMAL",
-      ];
-    });
-
-    const escapeCell = (v) => {
-      const s = v === null || v === undefined ? "" : String(v);
-      const needsQuote = /[",\n]/.test(s);
-      const escaped = s.replace(/"/g, '""');
-      return needsQuote ? `"${escaped}"` : escaped;
-    };
-
     const csv =
-      [headers.map(escapeCell).join(",")]
-        .concat(rows.map((r) => r.map(escapeCell).join(",")))
-        .join("\n") + "\n";
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      "Zone,Slot,Status,Plate,Customer\n" +
+      list
+        .map(
+          (s) =>
+            `${s.zone_name || ""},${s.spot_code},${getSpotEffectiveState(s).key},${s.license_plate || ""},${s.customer_name || ""}`,
+        )
+        .join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const d = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `slots_${parkingLotId}_${d}.csv`;
+    a.download = `parking_report_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
-  }
+  };
 
-  btnExport?.addEventListener("click", exportCSV);
-
-  /* ========= UI EVENTS ========= */
-  if (searchSpot) {
-    searchSpot.addEventListener("input", () => {
-      clearTimeout(searchDebounce);
-      currentPage = 1;
-      searchDebounce = setTimeout(applyFiltersAndRender, 150);
-    });
-  }
-  filterStatus?.addEventListener("change", () => {
-    currentPage = 1;
-    applyFiltersAndRender();
-  });
-  sortBy?.addEventListener("change", () => {
-    currentPage = 1;
-    applyFiltersAndRender();
-  });
-
-  logoutBtn?.addEventListener("click", () => {
-    localStorage.removeItem("sp_token");
-    localStorage.removeItem("sp_role");
-    localStorage.removeItem("managed_parking_lot");
-    localStorage.removeItem("managed_parking_name");
-    location.href = "../login/dangnhap.html";
-  });
-
-  /* ========= SOCKET: auto refresh ========= */
-  function scheduleReload() {
-    if (reloadTimer) return;
-    reloadTimer = setTimeout(async () => {
-      reloadTimer = null;
-      await loadSpots();
-    }, 400);
-  }
-
+  /* ========= SOCKET ========= */
   if (typeof io === "function") {
     const socket = io("http://localhost:5000");
-
     socket.on("spot-updated", (payload) => {
-      const lot = Number(payload?.parking_lot_id);
-      if (!Number.isNaN(lot) && lot === parkingLotId) {
-        if (payload.reason === "MANUAL_FORCE_RELEASE") {
-          // Do nothing, handled by local showToast
-        } else {
-          showToast(`Ô đỗ #${payload.spot_number} đã cập nhật`, "info");
-        }
-        scheduleReloadAndHighlight(payload.spot_number);
+      if (Number(payload?.parking_lot_id) === parkingLotId) {
+        showToast(`Slot #${payload.spot_number} updated`, "info");
+        loadSpots(true);
       }
-    });
-
-    function scheduleReloadAndHighlight(spotCode) {
-      scheduleReload();
-      // Highlight spot after reload
-      setTimeout(() => {
-        const el = document.querySelector(`.spot[data-spot-code="${spotCode}"]`);
-        if (el) {
-          el.classList.add("spot-updated");
-          setTimeout(() => el.classList.remove("spot-updated"), 2500);
-        }
-      }, 600);
-    }
-    socket.on("connect_error", () => {
-      // Không làm gián đoạn UI
     });
   }
 
-  /* ========= INIT ========= */
+  /* ========= START ========= */
   loadSpots();
 });
-

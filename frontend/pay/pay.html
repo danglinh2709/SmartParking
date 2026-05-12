@@ -108,92 +108,103 @@
       </nav>
     </header>
 
-    <br /><br /><br /><br />
-    <!-- khối thông báo  -->
+    <!-- khối thông báo vị trí -->
     <div class="modal" id="thongbaovitri">
-      <div class="modal-content">
+      <div class="modal-content location-modal">
+        <div class="location-icon">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <h3>Cấp quyền vị trí?</h3>
         <p>
-          Bạn có muốn cấp quyền truy cập vị trí? <br />
-          Chúng tôi sẽ giúp bạn tìm bãi đỗ xe gần nhất và tiện lợi nhất!
+          Chúng tôi sẽ giúp bạn tìm bãi đỗ xe gần nhất <br />
+          và tối ưu hóa lộ trình di chuyển của bạn!
         </p>
-        <button onclick="xuLyQuyenViTri(true)">Đồng ý</button>
-        <button onclick="xuLyQuyenViTri(false)">Không đồng ý</button>
+        <div class="modal-actions">
+          <button class="btn ghost" onclick="xuLyQuyenViTri(false)">
+            Không đồng ý
+          </button>
+          <button class="btn primary" onclick="xuLyQuyenViTri(true)">
+            Đồng ý ngay
+          </button>
+        </div>
       </div>
     </div>
-    <!-- khối tìm kiếm -->
-    <div class="search-bar" id="searchBar" style="display: none">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Tìm bãi đỗ xe..." id="searchInput" />
-      </div>
-    </div>
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1>Tìm kiếm bãi đỗ xe thông minh</h1>
+        <p>
+          Tiết kiệm thời gian, an tâm đỗ xe với hệ thống Smart Parking hiện đại
+        </p>
 
-    <div class="parking-container" id="parkingList"></div>
+        <div class="search-bar" id="searchBar" style="display: flex">
+          <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input
+              type="text"
+              placeholder="Nhập tên bãi đỗ hoặc khu vực bạn muốn..."
+              id="searchInput"
+              onkeyup="filterParking(this.value)"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="main-content">
+      <div class="parking-container" id="parkingList"></div>
+      <div id="pagination" class="pagination-container"></div>
+    </div>
     <!-- TIÊU ĐỀ + THỐNG KÊ -->
-    <div id="parkingHeader" class="parking-header" style="display: none">
-      <button
-        id="cancelModeBtn"
-        class="cancel-btn"
-        onclick="enableCancelMode()"
-      >
-        Hủy đặt chỗ
-      </button>
+    <!-- TIÊU ĐỀ + THỐNG KÊ -->
+    <div
+      id="parkingHeader"
+      class="parking-header-wrapper"
+      style="display: none"
+    >
+      <div class="detailed-nav-bar">
+        <button class="nav-btn-back" onclick="window.location.reload()">
+          <i class="fas fa-arrow-left"></i> Quay lại bãi đỗ
+        </button>
+        <button
+          id="cancelModeBtn"
+          class="nav-btn-cancel"
+          onclick="enableCancelMode()"
+        >
+          <i class="fas fa-ban"></i> Hủy đặt chỗ
+        </button>
+      </div>
 
-      <h2 id="lotName" class="parking-title"></h2>
-      <!-- thống kê ô đỗ theo màu  -->
+      <h1 class="detailed-lot-title" id="lotName"></h1>
+
       <div class="parking-summary">
         <div>
-          <span class="legend-box free"></span>
-          Trống: <b id="freeSpots"></b>
-        </div>
-
-        <div>
-          <span class="legend-box pending"></span>
-          Chưa thanh toán: <b id="pendingSpots"></b>
-        </div>
-
-        <div>
-          <span class="legend-box paid"></span>
-          Đã đặt (đã thanh toán): <b id="paidSpots"></b>
-        </div>
-
-        <div>
-          <span class="legend-box occupied"></span>
-          Đang đỗ: <b id="occupiedSpots"></b>
+          <span class="legend-box free"></span> Trống: <b id="freeSpots">0</b>
         </div>
         <div>
-          <span class="legend-box temp-out"></span>
-          Ra tạm (còn hạn): <b id="tempOutSpots"></b>
+          <span class="legend-box pending"></span> Chờ thanh toán:
+          <b id="pendingSpots">0</b>
         </div>
-
         <div>
-          <span class="legend-box total"></span>
-          Tổng: <b id="totalSpots"></b>
+          <span class="legend-box paid"></span> Đã thanh toán:
+          <b id="paidSpots">0</b>
+        </div>
+        <div>
+          <span class="legend-box occupied"></span> Đang đỗ:
+          <b id="occupiedSpots">0</b>
+        </div>
+        <div>
+          <span class="legend-box temp-out"></span> Ra tạm:
+          <b id="tempOutSpots">0</b>
+        </div>
+        <div>
+          <span class="legend-box total"></span> Tổng: <b id="totalSpots">0</b>
         </div>
       </div>
     </div>
 
-    <!-- KHU ĐỖ -->
+    <!-- KHU ĐỖ XE — Zones được render động bởi JS -->
     <div class="parking-map-wrapper">
-      <div class="parking-map" id="parkingMap">
-        <!-- LANE TRÁI -->
-        <div class="lane vertical left"></div>
-
-        <div class="zones-wrapper" id="legend" style="display: none">
-          <div class="zone" id="zoneA-wrapper">
-            <h3>Khu A</h3>
-            <div class="spot-grid" id="zoneA"></div>
-          </div>
-
-          <div class="zone" id="zoneB-wrapper">
-            <h3>Khu B</h3>
-            <div class="spot-grid" id="zoneB"></div>
-          </div>
-        </div>
-
-        <!-- LANE PHẢI -->
-        <div class="lane vertical right"></div>
-      </div>
+      <div id="legend" style="display: none"></div>
     </div>
 
     <div class="reserve-modal" id="reserveFormModal">
@@ -201,6 +212,15 @@
         <h3>🚗 Thông tin đặt chỗ</h3>
 
         <div class="form-group">
+          <label>Loại xe</label>
+          <select id="vehicleTypeInput" onchange="togglePlateInput()">
+            <option value="CAR">Ô tô</option>
+            <option value="MOTORBIKE">Xe máy</option>
+            <option value="BICYCLE">Xe đạp</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="plateInputGroup">
           <label>Biển số xe</label>
           <input id="plateInput" placeholder="VD: 30A-12345" />
         </div>
@@ -246,15 +266,27 @@
     <!-- khối thông báo thanh toán khi đặt chỗ -->
     <div class="payment-modal" id="paymentModal">
       <div class="payment-modal-content">
-        <p>Hãy thanh toán trước 10 phút kể từ khi xác nhận thanh toán</p>
-        <button onclick="proceedToPayment()">Thanh toán ngay</button>
-        <button
-          onclick="
-            document.getElementById('paymentModal').style.display = 'none'
-          "
-        >
-          Chờ
-        </button>
+        <div class="modal-icon">
+          <i class="fas fa-clock-rotate-left"></i>
+        </div>
+        <h3>Xác nhận thanh toán</h3>
+        <p>
+          Vui lòng hoàn tất thanh toán trong vòng <b>10 phút</b> để giữ chỗ đỗ
+          xe của bạn.
+        </p>
+        <div class="modal-actions">
+          <button class="btn primary" onclick="proceedToPayment()">
+            Thanh toán ngay <i class="fas fa-chevron-right"></i>
+          </button>
+          <button
+            class="btn ghost"
+            onclick="
+              document.getElementById('paymentModal').style.display = 'none'
+            "
+          >
+            Để sau
+          </button>
+        </div>
       </div>
     </div>
     <!-- modal huỷ đặt chỗ  -->

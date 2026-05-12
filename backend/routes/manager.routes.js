@@ -34,9 +34,16 @@ router.put("/assignments/:id", auth, ctrl.updateAssignment);
 
 router.delete("/assignments/:id", auth, ctrl.deleteAssignment);
 
+// Many-to-many lookup routes
+router.get("/parking-lots/:lotId/staff", auth, ctrl.getStaffByLot);
+
+router.get("/staff/:staffId/assignments", auth, ctrl.getAssignmentsByStaff);
+
 router.get("/contact-messages", auth, ctrl.getContactMessages);
 
 router.get("/contact-messages/:id", auth, ctrl.readContactMessage);
+
+router.delete("/contact-messages/:id", auth, ctrl.deleteContactMessage);
 
 router.get("/parking-stats", auth, ctrl.getParkingStats);
 

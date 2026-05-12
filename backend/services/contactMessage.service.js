@@ -27,3 +27,12 @@ exports.read = async (id) => {
   `);
   return rs.recordset[0];
 };
+
+exports.remove = async (id) => {
+  const pool = await poolPromise;
+  const rs = await pool.request().input("id", id).query(`
+    DELETE FROM ContactMessage
+    WHERE id = @id
+  `);
+  return { deleted: rs.rowsAffected[0] };
+};

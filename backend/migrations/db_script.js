@@ -1,4 +1,4 @@
-const poolPromise = require("./models/db");
+const poolPromise = require("../models/db");
 
 async function migrate() {
   try {

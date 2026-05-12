@@ -11,6 +11,10 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
         ps.id,
         ps.spot_code,
         ps.admin_status,
+        z.id AS zone_id,
+        z.name AS zone_name,
+        z.zone_type,
+        z.supported_vehicles,
 
         CASE
           -- ĐANG ĐỖ
@@ -192,9 +196,21 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
             AND r.user_id IS NOT NULL
             AND r.status IN ('PENDING','PAID')
             AND r.is_active = 1
-          ORDER BY r.created_at DESC) AS customer_phone
+          ORDER BY r.created_at DESC) AS customer_phone,
+
+        -- ===== NEW: Mapping improvements =====
+        COALESCE(
+          (SELECT TOP 1 s.actual_vehicle_type FROM ParkingSession s WHERE s.parking_lot_id = ps.parking_lot_id AND s.spot_number = ps.spot_code AND s.status = 'IN'),
+          (SELECT TOP 1 r.vehicle_type FROM ParkingReservation r WHERE r.parking_lot_id = ps.parking_lot_id AND r.spot_number = ps.spot_code AND r.status IN ('PENDING','PAID') AND r.is_active = 1)
+        ) AS current_vehicle_type,
+
+        COALESCE(
+          (SELECT TOP 1 r.amount FROM ParkingReservation r WHERE r.parking_lot_id = ps.parking_lot_id AND r.spot_number = ps.spot_code AND r.status IN ('PENDING','PAID') AND r.is_active = 1),
+          0
+        ) AS amount_paid
 
       FROM ParkingSpot ps
+      LEFT JOIN Zone z ON ps.zone_id = z.id
       WHERE ps.parking_lot_id = @lot
       ORDER BY ps.spot_code
     `);

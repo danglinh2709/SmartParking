@@ -3,7 +3,7 @@ const poolPromise = require("./db");
 exports.getValidTicket = async (ticket) => {
   const pool = await poolPromise;
   const res = await pool.request().input("ticket", ticket).query(`
-    SELECT ticket, license_plate, spot_number
+    SELECT ticket, license_plate, spot_number, vehicle_type
     FROM ParkingReservation
     WHERE ticket = @ticket
     AND status = 'PAID'
@@ -68,6 +68,9 @@ exports.create = async ({
   endTimeSQL,
   hoursNum,
   userId,
+  vehicle_type = "CAR",
+  zone_id = null,
+  amount = 0,
 }) => {
   const pool = await poolPromise;
   await pool
@@ -79,16 +82,19 @@ exports.create = async ({
     .input("start", startTimeSQL)
     .input("end", endTimeSQL)
     .input("hours", hoursNum)
-    .input("userId", userId).query(`
+    .input("userId", userId)
+    .input("vehicle_type", vehicle_type)
+    .input("zone_id", zone_id)
+    .input("amount", amount).query(`
       INSERT INTO ParkingReservation
 (ticket, parking_lot_id, spot_number, license_plate,
  start_time, end_time, hours,
- status, expired_at, user_id)
+ status, expired_at, user_id, vehicle_type, zone_id, amount)
 
       VALUES
 (@ticket, @lot, @spot, @plate,
  @start, @end, @hours,
- 'PENDING', DATEADD(MINUTE, 10, GETDATE()), @userId)
+ 'PENDING', DATEADD(MINUTE, 10, GETDATE()), @userId, @vehicle_type, @zone_id, @amount)
 
     `);
 };
@@ -120,7 +126,9 @@ exports.getPending = async (ticket) => {
       id,
       parking_lot_id,
       start_time,
-      end_time
+      end_time,
+      vehicle_type,
+      zone_id
     FROM ParkingReservation
     WHERE ticket = @ticket
       AND status = 'PENDING'
@@ -149,9 +157,13 @@ exports.verifyCheckinTicket = async (ticket, lotId) => {
         pr.spot_number,
         pr.start_time,
         pr.end_time,
-        pl.name AS parking_name
+        pr.vehicle_type,
+        pr.amount AS original_paid_amount,
+        pl.name AS parking_name,
+        z.name AS zone_name
       FROM ParkingReservation pr
       JOIN ParkingLot pl ON pl.id = pr.parking_lot_id
+      LEFT JOIN Zone z ON pr.zone_id = z.id
       WHERE pr.ticket = @ticket
         AND pr.parking_lot_id = @lot
         AND pr.status = 'PAID'
@@ -186,12 +198,16 @@ exports.getTicketDetail = async (ticket) => {
       pr.ticket,
       pr.spot_number,
       pr.license_plate,
+      pr.vehicle_type,
+      pr.amount AS original_paid_amount,
       CONVERT(varchar, pr.start_time, 126) AS start_time,
       CONVERT(varchar, pr.end_time, 126)   AS end_time,
       pr.status,
-      pl.name AS parking_name
+      pl.name AS parking_name,
+      z.name AS zone_name
     FROM ParkingReservation pr
     JOIN ParkingLot pl ON pr.parking_lot_id = pl.id
+    LEFT JOIN Zone z ON pr.zone_id = z.id
     WHERE pr.ticket = @ticket
       AND pr.status IN ('PENDING', 'PAID', 'PARKING', 'EXPIRED')
   `);

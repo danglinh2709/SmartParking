@@ -2,40 +2,90 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Tin nhắn khách hàng</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Support | SmartParking BI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="../manager/manager.css" />
     <link rel="stylesheet" href="../manager/contact-messages.css" />
   </head>
   <body>
-    <div class="sidebar">
-      <h2>Quản Lý SmartParking</h2>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="parking-lots.html">Bãi đỗ</a>
-      <a href="staff.html">Nhân viên</a>
-      <a href="assign-staff.html">Phân công</a>
-      <a href="contact-messages.html">Chăm sóc khách hàng</a>
-    </div>
 
     <div class="main">
-      <div class="header">
-        <h1>📩 Tin nhắn khách hàng</h1>
+      <!-- HEADER -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1>Customer Support Inbox</h1>
+          <p>Manage and respond to customer inquiries</p>
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>Chủ đề</th>
-            <th>Thời gian</th>
-            <th>Trạng thái</th>
-            <th>Xem</th>
-          </tr>
-        </thead>
-        <tbody id="messageTable">
-          <!-- JS render -->
-        </tbody>
-      </table>
+      <!-- INBOX LAYOUT -->
+      <div class="inbox-layout">
+        
+        <!-- LEFT: MESSAGE LIST (35%) -->
+        <div class="inbox-sidebar card">
+          <div class="inbox-toolbar">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="searchMsg" placeholder="Search messages..." onkeyup="filterMessages()" />
+            </div>
+            <div class="filter-controls">
+              <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+              <button class="filter-btn" data-filter="unread" onclick="setFilter('unread')">
+                Unread <span class="badge badge-primary" id="unreadCount">0</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="msg-list-container" id="msgList">
+            <!-- Render via JS -->
+          </div>
+        </div>
+
+        <!-- RIGHT: MESSAGE DETAIL (65%) -->
+        <div class="inbox-content card">
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon"><i class="far fa-envelope-open"></i></div>
+            <h3>Select an item to read</h3>
+            <p>Nothing is selected</p>
+          </div>
+          
+          <div id="msgDetail" class="msg-detail hidden">
+            <div class="detail-header">
+              <div class="detail-sender">
+                <div class="sender-avatar" id="detailAvatar">U</div>
+                <div class="sender-info">
+                  <h3 id="detailName">Customer Name</h3>
+                  <a href="#" id="detailEmail" class="sender-email">email@example.com</a>
+                </div>
+              </div>
+              <div class="detail-time" id="detailTime">Time</div>
+            </div>
+            
+            <h2 class="detail-subject" id="detailSubject">Message Subject</h2>
+            
+            <div class="detail-body">
+              <p id="detailMessage">Message content goes here...</p>
+            </div>
+            
+            <div class="detail-actions">
+              <button class="btn-action primary" onclick="replyMessage()">
+                <i class="fas fa-reply"></i> Reply
+              </button>
+              <button class="btn-action outline" onclick="markAsReadBtn()" id="btnMarkRead">
+                <i class="fas fa-check"></i> Mark as Read
+              </button>
+              <button class="btn-action danger" onclick="deleteMessage()">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <script src="../manager/manager.js"></script>

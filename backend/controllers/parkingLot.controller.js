@@ -10,6 +10,22 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getById = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ msg: "ID bãi đỗ không hợp lệ" });
+    }
+
+    const data = await parkingLotService.getById(id);
+    if (!data) return res.status(404).json({ msg: `Không tìm thấy bãi đỗ với ID ${id}` });
+    res.json(data);
+  } catch (err) {
+    console.error(`GET LOT BY ID [${req.params.id}] ERROR:`, err);
+    res.status(500).json({ msg: "Lỗi server", error: err.message });
+  }
+};
+
 exports.getSpotStatus = async (req, res) => {
   try {
     const parkingLotId = req.params.id;
@@ -75,5 +91,33 @@ exports.create = async (req, res) => {
   } catch (err) {
     console.error("CREATE LOT ERROR:", err);
     res.status(err.status || 500).json({ msg: err.message });
+  }
+};
+
+exports.getZonesAndPricing = async (req, res) => {
+  try {
+    const parkingLotId = req.params.id;
+    const data = await parkingLotService.getZonesAndPricing(parkingLotId);
+    res.json(data);
+  } catch (err) {
+    console.error("GET ZONES ERROR:", err);
+    res.status(err.status || 500).json({ msg: err.message || "Lỗi server" });
+  }
+};
+
+exports.updateSpotZone = async (req, res) => {
+  try {
+    const { spotId } = req.params;
+    const { zoneId } = req.body;
+    
+    if (!spotId || !zoneId) {
+      return res.status(400).json({ msg: "Thiếu dữ liệu cập nhật" });
+    }
+    
+    const result = await parkingLotService.updateSpotZone(spotId, zoneId);
+    res.json(result);
+  } catch (err) {
+    console.error("UPDATE SPOT ZONE ERROR:", err);
+    res.status(err.status || 500).json({ msg: err.message || "Lỗi server" });
   }
 };

@@ -69,14 +69,9 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
   /* ========= 3. ANTI GIAN LẬN ========= */
   const matched = ocrPlates.some((p) => matchPlate(ticketPlate, p));
 
-  if (!matched) {
-    throw {
-      status: 400,
-      message: "Biển số xe ra không khớp biển số xe vào",
-      ticketPlate,
-      ocrPlates,
-    };
-  }
+  // Nếu không khớp, chúng ta vẫn cho phép ra (vì staff đang điều khiển)
+  // Nhưng có thể log lại hoặc đánh dấu session này có nghi vấn.
+  const mismatch_plate = matched ? 0 : 1;
 
   /* ========= 4. LƯU ẢNH ========= */
   const today = new Date().toISOString().slice(0, 10);
@@ -89,8 +84,64 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
     ? saveBase64Image(image_back, `parking/${today}`, `${ticket_code}_out_b`)
     : null;
 
-  /* ========= 5. TRANSACTION ========= */
+  /* ========= 4.5 TÍNH TOÁN CHI PHÍ (ADDITIONAL CHARGE) ========= */
   const pool = await poolPromise;
+
+  // Lấy đơn giá thực tế
+  let actualRateRes = await pool
+    .request()
+    .input("zone", session.zone_id)
+    .input("type", session.actual_vehicle_type)
+    .query(
+      `SELECT TOP 1 hourly_rate FROM Pricing WHERE zone_id = @zone AND vehicle_type = @type`,
+    );
+
+  let actualHourlyRate =
+    actualRateRes.recordset.length > 0
+      ? actualRateRes.recordset[0].hourly_rate
+      : 10000;
+
+  const checkinTimeMs = new Date(session.checkin_time).getTime();
+  const checkoutTimeMs = new Date().getTime();
+  const actualDurationHours = Math.ceil(
+    (checkoutTimeMs - checkinTimeMs) / (1000 * 60 * 60),
+  );
+  const reservedDurationHours = session.hours || 0;
+  const originalPaidAmount = session.original_paid_amount || 0;
+
+  // Tính Overtime
+  let overtimeCharge = 0;
+  if (actualDurationHours > reservedDurationHours) {
+    const overtimeHours = actualDurationHours - reservedDurationHours;
+    overtimeCharge = overtimeHours * actualHourlyRate;
+  }
+
+  // Tính Mismatch Charge
+  let mismatchCharge = 0;
+  if (session.mismatch_flag === true || session.mismatch_flag === 1) {
+    let reservedRateRes = await pool
+      .request()
+      .input("zone", session.zone_id)
+      .input("type", session.registered_vehicle_type)
+      .query(
+        `SELECT TOP 1 hourly_rate FROM Pricing WHERE zone_id = @zone AND vehicle_type = @type`,
+      );
+
+    let reservedHourlyRate =
+      reservedRateRes.recordset.length > 0
+        ? reservedRateRes.recordset[0].hourly_rate
+        : 10000;
+
+    const rateDiff = actualHourlyRate - reservedHourlyRate;
+    if (rateDiff > 0) {
+      mismatchCharge = reservedDurationHours * rateDiff;
+    }
+  }
+
+  const additionalCharge = overtimeCharge + mismatchCharge;
+  const totalFinalAmount = originalPaidAmount + additionalCharge;
+
+  /* ========= 5. TRANSACTION ========= */
   const tx = pool.transaction();
   await tx.begin();
 
@@ -100,6 +151,18 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
       frontPath,
       backPath,
     });
+
+    // Cập nhật chi phí vào ParkingSession
+    await tx
+      .request()
+      .input("id", session.id)
+      .input("original", originalPaidAmount)
+      .input("add", additionalCharge)
+      .input("final", totalFinalAmount).query(`
+        UPDATE ParkingSession 
+        SET original_paid_amount = @original, additional_charge = @add, final_amount = @final 
+        WHERE id = @id
+      `);
 
     await parkingSpotModel.release(
       tx,
@@ -131,5 +194,12 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
     msg: `Xe đã ra bãi thành công [${ticketPlate}]`,
     plate: ticketPlate,
     checkout_time: new Date(),
+    billing: {
+      original_paid: originalPaidAmount,
+      overtime_charge: overtimeCharge,
+      mismatch_charge: mismatchCharge,
+      additional_charge: additionalCharge,
+      total_final_amount: totalFinalAmount,
+    },
   };
 };

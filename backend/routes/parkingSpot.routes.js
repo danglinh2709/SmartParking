@@ -15,4 +15,10 @@ router.post(
   parkingLotController.forceReleaseSpot,
 );
 
+router.patch(
+  "/:spotId/zone",
+  auth,
+  parkingLotController.updateSpotZone,
+);
+
 module.exports = router;

@@ -2,191 +2,204 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Staff | Quản lý ô đỗ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartParking | Real-time Monitoring</title>
     <link rel="stylesheet" href="slots.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="topbar.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div class="logo">🚗 SmartParking</div>
-      <nav class="menu">
-        <a href="verify.html">Vận hành xe ra / vào</a>
-        <a href="slots.html" class="active">Quản lý ô đỗ</a>
-        <a href="ticketManagement.html">Quản lý vé</a>
-      </nav>
-      <div class="user">
-        <span id="staffName">Giám sát viên</span>
-        <button id="logoutBtn">Đăng xuất</button>
-      </div>
-    </header>
+    <!-- 1. COMPACT HEADER -->
+    <div id="unified-topbar"></div>
 
     <main class="container">
-      <!-- Quick Stats -->
+      <!-- 2. OVERVIEW SECTION (Compact Stat Cards) -->
       <section class="stats-grid">
         <div class="stat-card total">
-          <div class="stat-icon"><i class="fas fa-th"></i></div>
+          <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
           <div class="stat-info">
             <h4 id="stat-total">0</h4>
-            <p>Tổng số ô</p>
+            <p>Total Slots</p>
           </div>
+          <div class="trend up"><i class="fas fa-caret-up"></i> 100%</div>
         </div>
         <div class="stat-card free">
-          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
           <div class="stat-info">
             <h4 id="stat-free">0</h4>
-            <p>Ô còn trống</p>
+            <p>Available</p>
           </div>
+          <div class="trend down"><i class="fas fa-caret-down"></i> 12%</div>
         </div>
         <div class="stat-card occupied">
-          <div class="stat-icon"><i class="fas fa-car"></i></div>
+          <div class="stat-icon"><i class="fas fa-car-side"></i></div>
           <div class="stat-info">
             <h4 id="stat-occupied">0</h4>
-            <p>Đang đỗ</p>
+            <p>Occupied</p>
           </div>
+          <div class="trend up"><i class="fas fa-caret-up"></i> 5%</div>
         </div>
         <div class="stat-card reserved">
-          <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
           <div class="stat-info">
             <h4 id="stat-reserved">0</h4>
-            <p>Đã đặt trước</p>
+            <p>Reserved</p>
           </div>
         </div>
         <div class="stat-card maintenance">
-          <div class="stat-icon"><i class="fas fa-tools"></i></div>
+          <div class="stat-icon"><i class="fas fa-screwdriver-wrench"></i></div>
           <div class="stat-info">
             <h4 id="stat-maintenance">0</h4>
-            <p>Bảo trì/Khóa</p>
-          </div>
-        </div>
-        <div class="stat-card alert" id="alert-card" style="display: none">
-          <div class="stat-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <div class="stat-info">
-            <h4 id="stat-alerts">0</h4>
-            <p>Cảnh báo</p>
+            <p>Maintenance</p>
           </div>
         </div>
       </section>
 
-      <!-- Filters & Search -->
-      <section class="filter-bar">
-        <div class="filter-group">
+      <!-- 3. FILTER + SEARCH BAR (One Horizontal Toolbar) -->
+      <section class="toolbar">
+        <div class="search-wrapper">
           <i class="fas fa-search"></i>
           <input
             type="text"
             id="searchSpot"
-            placeholder="Tìm mã ô hoặc biển số..."
+            placeholder="Search by code, plate, or customer..."
           />
         </div>
 
-        <select id="filterStatus">
-          <option value="ALL">Tất cả trạng thái</option>
-          <option value="FREE">Ô trống</option>
-          <option value="OCCUPIED">Đang đỗ</option>
-          <option value="PAID">Đã đặt trước</option>
-          <option value="MAINTENANCE">Bảo trì</option>
-          <option value="LOCKED">Đã khóa</option>
-        </select>
+        <div class="tool-group">
+          <select id="filterStatus">
+            <option value="ALL">All Status</option>
+            <option value="FREE">Available</option>
+            <option value="OCCUPIED">Occupied</option>
+            <option value="PAID">Reserved</option>
+            <option value="MAINTENANCE">Maintenance</option>
+            <option value="LOCKED">Locked</option>
+          </select>
 
-        <select id="sortBy">
-          <option value="code">Sắp xếp: Mã ô</option>
-          <option value="status">Sắp xếp: Trạng thái</option>
-          <option value="time">Sắp xếp: Thời gian vào</option>
-        </select>
+          <select id="sortBy">
+            <option value="code">Sort: Slot Code</option>
+            <option value="status">Sort: Status</option>
+            <option value="time">Sort: Entry Time</option>
+          </select>
 
-        <button class="btn-export" id="btnExport">
-          <i class="fas fa-file-excel"></i> Xuất file
-        </button>
-      </section>
+          <button class="btn-icon" id="refreshBtn" title="Refresh data">
+            <i class="fas fa-sync-alt"></i>
+          </button>
 
-      <!-- Spot Grid -->
-      <section class="spot-grid" id="spotGrid">
-        <!-- Spots will be rendered here -->
-        <div class="loading">Đang tải dữ liệu...</div>
-      </section>
-
-      <!-- Pagination -->
-      <div class="pagination" id="pagination" aria-label="Phân trang chỗ đỗ"></div>
-
-      <!-- Hover Info Card (Premium Tooltip) -->
-      <div id="hoverCard" class="hover-card">
-        <div class="hover-header">
-          <span id="hoverCode">#101</span>
-          <span id="hoverBadge" class="badge">Trống</span>
+          <button class="btn-export" id="btnExport">
+            <i class="fas fa-file-export"></i>
+            Export
+          </button>
         </div>
-        <div id="hoverContent" class="hover-content">
-          <p><i class="fas fa-car"></i> <span id="hoverPlate">-</span></p>
-          <p><i class="fas fa-user"></i> <span id="hoverName">-</span></p>
-          <p><i class="fas fa-clock"></i> <span id="hoverTime">-</span></p>
-          <div class="hover-footer">
-            Chi tiết đặt chỗ <i class="fas fa-arrow-right"></i>
-          </div>
+      </section>
+
+      <!-- 4. PARKING ZONE SECTION (Rendered via JS) -->
+      <div id="zoneContainer" class="zone-container">
+        <div class="loading">Initializing system data...</div>
+      </div>
+
+      <!-- Pagination (Tighter spacing) -->
+      <div class="pagination" id="pagination"></div>
+    </main>
+
+    <!-- HOVER INFO CARD -->
+    <div id="slotHoverCard" class="slot-hover-card">
+      <div class="hover-head">
+        <span id="hoverCode">A1-01</span>
+        <span id="hoverStatus" class="status-badge">Available</span>
+      </div>
+      <div class="hover-body">
+        <div class="hover-row">
+          <label>Plate:</label>
+          <span id="hoverPlate">-</span>
+        </div>
+        <div class="hover-row">
+          <label>Time:</label>
+          <span id="hoverTime">-</span>
         </div>
       </div>
-    </main>
+    </div>
+
+    <!-- 7. REAL-TIME INDICATOR -->
+    <div id="updatingIndicator" class="updating-indicator">
+      <div class="spinner"></div>
+      SYNCING LIVE DATA
+    </div>
 
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Modal Detail -->
+    <!-- MODAL REDESIGN -->
     <div id="detailModal" class="modal">
       <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="modalTitle">Thông tin ô đỗ #101</h2>
-        <div class="modal-body">
-          <div class="detail-row">
-            <span>Trạng thái:</span>
-            <strong id="modalStatus">-</strong>
+        <div class="modal-header">
+          <div>
+            <h2 id="modalTitle">Slot #--</h2>
+            <span id="modalStatusBadge" class="zone-tag">Status</span>
           </div>
-          <div id="customerInfo" style="display: none">
-            <hr />
-            <div class="detail-row">
-              <span>Khách hàng:</span>
-              <strong id="modalCustomer">-</strong>
-            </div>
-            <div class="detail-row">
-              <span>Số điện thoại:</span>
-              <strong id="modalPhone">-</strong>
-            </div>
-            <div class="detail-row">
-              <span>Biển số xe:</span>
-              <strong id="modalPlate">-</strong>
-            </div>
-            <div class="detail-row">
-              <span>Thời gian vào:</span>
-              <strong id="modalTime">-</strong>
-            </div>
-            <div class="detail-row">
-              <span>Mã vé:</span>
-              <strong id="modalTicket">-</strong>
-            </div>
-            <div class="detail-row">
-              <span>Dự kiến kết thúc:</span>
-              <strong id="modalEndTime">-</strong>
-            </div>
+          <span class="close">&times;</span>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Customer</label>
+            <span id="modalCustomer">-</span>
           </div>
-          <hr />
-          <div class="modal-actions">
-            <button class="btn btn-lock" id="btnLockSpot">Khóa ô này</button>
-            <button class="btn btn-maint" id="btnMaintSpot">Bảo trì</button>
-            <button class="btn btn-release" id="btnReleaseSpot">Giải phóng</button>
-            <button
-              class="btn btn-unlock"
-              id="btnUnlockSpot"
-              style="display: none"
-            >
-              Mở khóa
-            </button>
+          <div class="detail-item">
+            <label>Phone</label>
+            <span id="modalPhone">-</span>
           </div>
+          <div class="detail-item">
+            <label>License Plate</label>
+            <span id="modalPlate">-</span>
+          </div>
+          <div class="detail-item">
+            <label>Vehicle Type</label>
+            <span id="modalVehicleType">-</span>
+          </div>
+          <div class="detail-item">
+            <label>Entry Time</label>
+            <span id="modalTime">-</span>
+          </div>
+          <div class="detail-item">
+            <label>Exp. Checkout</label>
+            <span id="modalEndTime">-</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-danger" id="btnLockSpot">Lock Slot</button>
+          <button class="btn btn-ghost" id="btnMaintSpot">Maintenance</button>
+          <button
+            class="btn btn-primary"
+            id="btnReleaseSpot"
+            style="grid-column: 1 / -1"
+          >
+            Force Release
+          </button>
+          <button
+            class="btn btn-primary"
+            id="btnUnlockSpot"
+            style="display: none; grid-column: 1 / -1"
+          >
+            Unlock Slot
+          </button>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="topbar.js"></script>
+    <script>renderTopbar('slots');</script>
     <script src="slots.js"></script>
   </body>
 </html>

@@ -14,6 +14,17 @@ exports.getManagedParkingLots = async (req, res) => {
   }
 };
 
+exports.getMe = async (req, res) => {
+  try {
+    const data = await staffService.getStaffInfo(req.user.id);
+    if (!data) return res.status(404).json({ msg: "User not found" });
+    res.json(data);
+  } catch (err) {
+    console.error("GET ME ERROR:", err);
+    res.status(500).json({ msg: "Lỗi server" });
+  }
+};
+
 exports.verifyAccessCode = async (req, res) => {
   try {
     const ok = await staffService.verifyAccessCode(req.user.id, req.body);

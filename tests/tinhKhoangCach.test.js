@@ -51,10 +51,10 @@ describe("Hàm tinhKhoangCach", () => {
     expect(result).toBeLessThan(1);
   });
 
-  test("dữ liệu không hợp lệ thì trả NaN", () => {
-    const result = tinhKhoangCach(10.762622, 106.660172, "abc", 106.700806);
-    expect(Number.isNaN(result)).toBe(true);
-  });
+    test("Dữ liệu không hợp lệ thì trả NaN", () => {
+      const result = tinhKhoangCach(10.762622, 106.660172, "abc", 106.700806);
+      expect(Number.isNaN(result)).toBe(true);
+    });
 });
 
 // Kiểm tra trường hợp thiếu tọa độ đầu vào ở lat2.

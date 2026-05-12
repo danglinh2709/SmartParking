@@ -24,6 +24,35 @@ exports.getActiveLots = async () => {
   return lots;
 };
 
+exports.getById = async (id) => {
+  try {
+    const pool = await poolPromise;
+    const res = await pool.request().input("id", id).query(`
+      SELECT id, name, total_spots, available_spots, image_url, lat, lng
+      FROM ParkingLot
+      WHERE id = @id AND IsActive = 1
+    `);
+
+    if (!res.recordset.length) {
+      return null;
+    }
+
+    const lot = res.recordset[0];
+
+    // Đảm bảo không bị lỗi null reference khi tính toán giá
+    const total = lot.total_spots || 0;
+    const avail = lot.available_spots || 0;
+
+    return {
+      ...lot,
+      current_price: calculateDynamicPrice(total, avail),
+    };
+  } catch (err) {
+    console.error(`DATABASE ERROR in getById(${id}):`, err);
+    throw err;
+  }
+};
+
 exports.create = async (tx, { name, total_spots, image_url, lat, lng }) => {
   const res = await tx
     .request()

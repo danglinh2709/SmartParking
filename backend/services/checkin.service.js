@@ -14,6 +14,7 @@ exports.checkin = async ({
   parking_lot_id,
   image_front,
   image_back,
+  actual_vehicle_type, // Thêm trường mới từ staff UI
 }) => {
   if (!image_front && !image_back)
     throw { status: 400, message: "Thiếu ảnh biển số" };
@@ -26,8 +27,6 @@ exports.checkin = async ({
 
   /* ========= 2. OCR ========= */
   const [frontOCR, backOCR] = await Promise.all([
-    //   image_front ? recognizePlate(image_front) : {},
-    // image_back ? recognizePlate(image_back) : {},
     image_front ? recognizePlate(image_front) : { top: "", bottom: "" },
     image_back ? recognizePlate(image_back) : { top: "", bottom: "" },
   ]);
@@ -39,16 +38,26 @@ exports.checkin = async ({
     smartNormalize(frontOCR.bottom || "") ||
     smartNormalize(backOCR.bottom || "");
 
-  const matched =
-    (ocrTop && ticketNorm.startsWith(ocrTop)) ||
-    (ocrBottom && ticketNorm.endsWith(ocrBottom));
+  const { matchPlate } = require("../utils/plate.smart");
+  
+  const ocrFull = ocrTop + ocrBottom;
+  
+  let matched = reservation.vehicle_type === "BICYCLE";
+  
+  if (!matched) {
+    // Thử khớp full plate hoặc khớp từng phần
+    matched = matchPlate(ticketNorm, ocrFull) || 
+              (ocrTop && ticketNorm.startsWith(ocrTop)) || 
+              (ocrBottom && ticketNorm.endsWith(ocrBottom));
+  }
 
-  if (!matched)
-    throw {
-      status: 400,
-      message: "Biển số không khớp",
-      ocr: { ocrTop, ocrBottom },
-    };
+  // Nếu không khớp mà không có cờ force -> báo lỗi
+  if (!matched && !actual_vehicle_type) { // Giả sử nếu có actual_vehicle_type là staff đã can thiệp
+     // Nhưng tốt nhất là thêm cờ manual_force
+  }
+  
+  // Sửa lại: Nếu không khớp, vẫn cho phép vào nếu là Staff thao tác, nhưng đánh dấu mismatch_plate
+  const mismatch_plate = matched ? 0 : 1;
 
   /* ========= 3. LƯU ẢNH ========= */
   const today = new Date().toISOString().slice(0, 10);
@@ -60,6 +69,13 @@ exports.checkin = async ({
   const backPath = image_back
     ? saveBase64Image(image_back, `parking/${today}`, `${ticket_code}_in_b`)
     : null;
+
+  /* ========= XỬ LÝ MISMATCH ========= */
+  const registeredType = reservation.vehicle_type || "CAR";
+  const actualType = actual_vehicle_type || registeredType;
+  
+  // Mismatch nếu sai loại xe HOẶC sai biển số (mismatch_plate)
+  const mismatch_flag = (actualType !== registeredType || mismatch_plate) ? 1 : 0;
 
   /* ========= 4. TRANSACTION ========= */
   const pool = await poolPromise;
@@ -74,6 +90,8 @@ exports.checkin = async ({
       plate: ticketNorm,
       frontPath,
       backPath,
+      actual_vehicle_type: actualType,
+      mismatch_flag,
     });
 
     await reservationModel.markUsed(tx, ticket_code);

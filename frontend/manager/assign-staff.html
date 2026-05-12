@@ -2,67 +2,109 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Phân công</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Assignment | SmartParking BI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="../manager/manager.css" />
     <link rel="stylesheet" href="../manager/assign-staff.css" />
   </head>
   <body>
-    <div class="sidebar">
-      <h2>Quản Lý SmartParking</h2>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="parking-lots.html">Bãi đỗ</a>
-      <a href="staff.html">Nhân viên</a>
-      <a href="assign-staff.html">Phân công</a>
-      <a href="contact-messages.html">Chăm sóc khách hàng</a>
-    </div>
 
     <div class="main">
-      <h1>Phân công nhân viên - bãi đỗ</h1>
-      <br />
-      <div class="form-box">
-        <!-- BÃI ĐỖ -->
-        <label>Bãi đỗ</label>
-        <br />
-        <div class="dropdown">
-          <input
-            type="text"
-            id="parkingInput"
-            placeholder="Chọn hoặc nhập bãi đỗ..."
-          />
-          <div class="dropdown-list" id="parkingList"></div>
+      <!-- HEADER -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1>Staff Assignment</h1>
+          <p>Assign employees to parking lots</p>
         </div>
-
-        <!-- NHÂN VIÊN -->
-        <label>Nhân viên</label>
-        <br />
-        <div class="dropdown">
-          <input
-            type="text"
-            id="staffInput"
-            placeholder="Chọn hoặc nhập nhân viên..."
-          />
-          <div class="dropdown-list" id="staffList"></div>
+        <div class="header-right">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchAssignment" placeholder="Search assignments..." onkeyup="filterAssignments()" />
+          </div>
         </div>
-
-        <button id="assignBtn" class="primary">Phân công</button>
       </div>
 
-      <!-- DANH SÁCH PHÂN CÔNG -->
-      <div class="assignments">
-        <h2>📋 Danh sách phân công hiện tại</h2>
+      <!-- SPLIT LAYOUT -->
+      <div class="split-layout">
+        
+        <!-- LEFT: FORM (40%) -->
+        <div class="layout-left">
+          <div class="card form-card">
+            <div class="card-header">
+              <h3>New Assignment</h3>
+              <p class="card-subtitle">Select an employee and a parking location.</p>
+            </div>
+            
+            <div class="form-group mt-4">
+              <label>Employee</label>
+              <div class="dropdown">
+                <div class="dropdown-input-wrapper">
+                  <i class="fas fa-user text-muted"></i>
+                  <input type="text" id="staffInput" placeholder="Search employee..." autocomplete="off" />
+                </div>
+                <div class="dropdown-list" id="staffList"></div>
+              </div>
+            </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Nhân viên</th>
-              <th>Bãi đỗ</th>
-              <th>Access Code</th>
-              <th>Thời gian</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody id="assignmentTable"></tbody>
-        </table>
+            <!-- Preview Card (Hidden by default) -->
+            <div id="employeePreview" class="preview-card hidden">
+              <div class="preview-avatar" id="previewAvatar">U</div>
+              <div class="preview-info">
+                <div class="preview-name" id="previewName">Name</div>
+                <div class="preview-status" id="previewStatus">Status</div>
+              </div>
+            </div>
+
+            <div class="form-group mt-3">
+              <label>Parking Location</label>
+              <div class="dropdown">
+                <div class="dropdown-input-wrapper">
+                  <i class="fas fa-parking text-muted"></i>
+                  <input type="text" id="parkingInput" placeholder="Search parking lot..." autocomplete="off" />
+                </div>
+                <div class="dropdown-list" id="parkingList"></div>
+              </div>
+            </div>
+
+            <button id="assignBtn" class="btn-primary full-width mt-4">
+              <i class="fas fa-link"></i> Assign Location
+            </button>
+            <div id="assignMessage" class="message-box hidden"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: TABLE (60%) -->
+        <div class="layout-right">
+          <div class="card table-card">
+            <div class="card-header space-between">
+              <h3>Current Assignments</h3>
+              <span class="badge badge-primary" id="totalAssignments">0 active</span>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="saas-table">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Location & Access</th>
+                    <th>Time</th>
+                    <th class="actions-col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="assignmentTable">
+                  <!-- JS Render -->
+                </tbody>
+              </table>
+            </div>
+            
+            <div id="paginationContainer" class="pagination-container"></div>
+          </div>
+        </div>
+
       </div>
     </div>
 

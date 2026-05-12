@@ -1,85 +1,223 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Staff | Xác nhận vé</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartParking | AI Control Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="verify.css" />
+    <link rel="stylesheet" href="topbar.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   </head>
 
   <body>
-    <header class="topbar">
-      <div class="logo">🚗 SmartParking</div>
+    <div class="app-shell">
+      <div id="unified-topbar"></div>
 
-      <nav class="menu">
-        <a href="verify.html" class="active">Vận hành xe ra / vào</a>
-        <a href="slots.html">Quản lý ô đỗ</a>
-        <a href="ticketManagement.html">Quản lý vé</a>
-      </nav>
-      <div class="user">
-        <span id="parkingName"></span>
-        <button id="logoutBtn">Đăng xuất</button>
-      </div>
-    </header>
-
-    <main class="dashboard">
-      <!-- LEFT -->
-      <section class="left">
-        <div class="card">
-          <h3>🎫 Quét / nhập vé</h3>
-
-          <div class="ticket-box">
-            <input
-              id="ticketInput"
-              placeholder="📄 Mã vé (TICKET-xxxx)"
-              autocomplete="off"
-            />
-
-            <div class="ticket-actions">
-              <button class="btn primary" id="verifyBtn">Xác nhận</button>
-              <button class="btn qr" id="qrBtn">📷 Quét QR</button>
+      <main class="dashboard">
+        <section class="hero-grid">
+          <article class="glass-panel camera-stage">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Primary visual intelligence</p>
+                <h1>Main Camera Feed</h1>
+              </div>
+              <div class="panel-badges">
+                <span class="signal-badge live"
+                  ><span class="dot"></span>LIVE</span
+                >
+                <span class="signal-badge neutral" id="cameraStatusLabel"
+                  >Linking sensors</span
+                >
+              </div>
             </div>
-          </div>
 
-          <div id="ticketInfo" class="ticket-card">
-            <div class="ticket-status pending">
-              Vui lòng quét vé / nhập mã vé để xác nhận
+            <div class="camera-frame is-loading" id="qrCameraFrame">
+              <video id="camQR" autoplay playsinline muted></video>
+              <div class="camera-skeleton"></div>
+              <div class="camera-overlay">
+                <div class="overlay-top">
+                  <span class="overlay-tag">QR + Operator View</span>
+                  <span class="overlay-time" id="liveTimestamp">--</span>
+                </div>
+                <div class="reticle">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="overlay-footer">
+                  <div>
+                    <strong>Feed</strong>
+                    <span id="feedHealth">Awaiting stream handshake</span>
+                  </div>
+                  <div>
+                    <strong>Mode</strong>
+                    <span id="laneModeBadge">Lane IN</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+            <canvas id="qrCanvas" hidden></canvas>
 
-        <div class="card">
-          <h3>📷 Camera quét QR</h3>
-          <video id="camQR" autoplay></video>
-          <canvas id="qrCanvas" hidden></canvas>
-        </div>
+            <!-- PLATE CAMERAS (MOVED HERE) -->
+            <div class="plate-grid">
+              <div class="plate-card">
+                <div class="plate-head">
+                  <span>Front Plate</span>
+                  <span class="mini-live"><span class="dot"></span>LIVE</span>
+                </div>
+                <div class="plate-frame is-loading" id="frontCameraFrame">
+                  <video id="camFront" autoplay playsinline muted></video>
+                  <div class="camera-skeleton"></div>
+                  <div class="plate-overlay">
+                    <span class="plate-tag">Front OCR</span>
+                    <span class="plate-readout" id="frontPlateOverlay">--</span>
+                  </div>
+                </div>
+                <canvas id="canvasFront" hidden></canvas>
+              </div>
 
-        <div class="card highlight">
-          <button class="confirm" id="confirmBtn" disabled>
-            CHO XE VÀO BÃI
-          </button>
-          <button class="lane-toggle" id="laneToggleBtn">
-            🔄 Chuyển sang làn xe ra
-          </button>
-        </div>
-      </section>
+              <div class="plate-card">
+                <div class="plate-head">
+                  <span>Rear Plate</span>
+                  <span class="mini-live danger"
+                    ><span class="dot"></span>LIVE</span
+                  >
+                </div>
+                <div class="plate-frame is-loading" id="backCameraFrame">
+                  <video id="camBack" autoplay playsinline muted></video>
+                  <div class="camera-skeleton"></div>
+                  <div class="plate-overlay">
+                    <span class="plate-tag">Rear OCR</span>
+                    <span class="plate-readout" id="backPlateOverlay">--</span>
+                  </div>
+                </div>
+                <canvas id="canvasBack" hidden></canvas>
+              </div>
+            </div>
 
-      <!-- RIGHT -->
-      <section class="right">
-        <div class="card">
-          <h3>📷 Camera biển số trước</h3>
-          <video id="camFront" autoplay></video>
-          <canvas id="canvasFront" hidden></canvas>
-        </div>
+            <section class="action-rail">
+              <button
+                class="action-btn action-btn-allow"
+                id="confirmBtn"
+                disabled
+              >
+                <span class="action-text">Allow Entry</span>
+                <span class="action-subtext">Authorize verified vehicle</span>
+              </button>
+              <button class="action-btn action-btn-reject" id="rejectBtn">
+                <span class="action-text">Reject</span>
+                <span class="action-subtext">Clear active verification</span>
+              </button>
+            </section>
+          </article>
 
-        <div class="card">
-          <h3>📷 Camera biển số sau</h3>
-          <video id="camBack" autoplay></video>
-          <canvas id="canvasBack" hidden></canvas>
-        </div>
-      </section>
-    </main>
+          <aside class="glass-panel control-panel">
+            <div class="panel-header panel-header-tight">
+              <div>
+                <p class="eyebrow">Decision console</p>
+                <h2>Unified Operations</h2>
+              </div>
+              <span class="intel-chip" id="detectionState">Idle</span>
+            </div>
 
+            <div class="compact-form-grid">
+              <div class="control-block control-block-wide">
+                <label class="field-label" for="ticketInput">Ticket</label>
+                <div class="input-shell">
+                  <i class="fas fa-ticket"></i>
+                  <input
+                    id="ticketInput"
+                    placeholder="Enter ticket code or scan QR"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+
+              <div class="control-block">
+                <label class="field-label" for="actualVehicleType"
+                  >Vehicle</label
+                >
+                <div class="select-shell">
+                  <i class="fas fa-car"></i>
+                  <select id="actualVehicleType">
+                    <option value="">Vehicle type</option>
+                    <option value="CAR">Car</option>
+                    <option value="MOTORBIKE">Motorbike</option>
+                    <option value="BICYCLE">Bicycle</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="quick-actions">
+                <button class="cmd-btn cmd-btn-primary" id="verifyBtn">
+                  <i class="fas fa-magnifying-glass"></i>
+                  <span>Xác minh</span>
+                </button>
+                <button class="cmd-btn cmd-btn-secondary" id="qrBtn">
+                  <i class="fas fa-expand"></i>
+                  <span>Quét QR</span>
+                </button>
+                <button class="cmd-btn cmd-btn-secondary" id="laneToggleBtn">
+                  <i class="fas fa-arrows-rotate"></i>
+                  <span>Chuyển làn</span>
+                </button>
+              </div>
+            </div>
+
+            <section class="ops-summary">
+              <div class="metric-strip">
+                <div class="metric-card">
+                  <span class="metric-label">Plate</span>
+                  <strong id="plateResult">--</strong>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Confidence</span>
+                  <strong id="confidenceResult">--</strong>
+                </div>
+              </div>
+
+              <div class="status-inline">
+                <div class="status-head">
+                  <span>System status</span>
+                  <span class="status-dot" id="statusDot"></span>
+                </div>
+                <p id="statusText">Ready for operator input.</p>
+              </div>
+
+              <div class="status-log compact-log" id="statusLog">
+                <div class="log-item">
+                  <span class="log-time">INIT</span>
+                  <span>Dashboard loaded. Sensors warming up.</span>
+                </div>
+              </div>
+
+              <div class="ticket-inline" id="ticketInfo">
+                <strong>Verification waiting</strong>
+                <span
+                  >Run a lookup or QR scan to load live reservation data.</span
+                >
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="topbar.js"></script>
+    <script>renderTopbar('verify');</script>
     <script src="verify.js"></script>
   </body>
 </html>

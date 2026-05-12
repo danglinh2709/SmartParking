@@ -1,5 +1,9 @@
 const API = "http://localhost:5000/api";
 
+let allStaff = [];
+let currentPage = 1;
+const itemsPerPage = 5;
+
 /* ================= LOAD STAFF ================= */
 async function loadStaff() {
   try {
@@ -18,52 +22,110 @@ async function loadStaff() {
     if (!res.ok) throw new Error("Không tải được danh sách nhân viên");
 
     const data = await res.json();
-    const tbody = document.getElementById("staffTable");
-    tbody.innerHTML = "";
-
-    if (data.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5">Chưa có nhân viên</td>
-        </tr>
-      `;
-      return;
-    }
-
-    data.forEach((s) => {
-      tbody.innerHTML += `
-        <tr data-id="${s.id}">
-          <td>
-            <span class="text">${s.full_name}</span>
-            <input class="edit-input hidden" value="${s.full_name}">
-          </td>
-
-          <td>
-            <span class="text">${s.email}</span>
-            <input class="edit-input hidden" value="${s.email}">
-          </td>
-
-          <td>${s.parking_name || "Chưa phân công"}</td>
-
-          <td>
-            <span class="status active">🟢 Hoạt động</span>
-          </td>
-
-          <td>
-            <button class="icon-btn edit" onclick="editStaff(${
-              s.id
-            })">✏️</button>
-            <button class="icon-btn delete" onclick="deleteStaff(${
-              s.id
-            })">🗑️</button>
-          </td>
-        </tr>
-      `;
-    });
+    allStaff = data;
+    renderStaff();
   } catch (err) {
     console.error("STAFF JS ERROR:", err);
     alert("Lỗi tải danh sách nhân viên");
   }
+}
+
+function renderStaff() {
+  const tbody = document.getElementById("staffTable");
+  tbody.style.opacity = "0";
+  tbody.style.transition = "opacity 0.2s ease";
+
+  setTimeout(() => {
+    tbody.innerHTML = "";
+
+    const searchTerm = document
+      .getElementById("searchStaff")
+      .value.toLowerCase();
+    const statusFilter = document.getElementById("statusFilter").value;
+
+    const filtered = allStaff.filter((s) => {
+      const isAssigned = s.parking_name && s.parking_name.trim() !== "";
+      const statusClass = isAssigned ? "active" : "unassigned";
+
+      const matchesSearch =
+        (s.full_name || "").toLowerCase().includes(searchTerm) ||
+        (s.email || "").toLowerCase().includes(searchTerm);
+      const matchesStatus =
+        statusFilter === "all" || statusClass === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center; padding:32px; color:#94a3b8;">Không tìm thấy nhân viên nào</td>
+        </tr>
+      `;
+      tbody.style.opacity = "1";
+      renderPagination(0);
+      return;
+    }
+
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentItems = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+    currentItems.forEach((s) => {
+      const isAssigned = s.parking_name && s.parking_name.trim() !== "";
+      const statusClass = isAssigned ? "active" : "unassigned";
+      const statusText = isAssigned ? "Assigned" : "Idle";
+      const locationIcon = isAssigned
+        ? '<i class="fas fa-map-marker-alt"></i>'
+        : "";
+      const locationText = isAssigned ? s.parking_name : "No location assigned";
+      const locationClass = isAssigned ? "" : "unassigned";
+      const initial = s.full_name ? s.full_name.charAt(0).toUpperCase() : "U";
+
+      tbody.innerHTML += `
+        <tr data-id="${s.id}" class="staff-row">
+          <td>
+            <div class="employee-cell">
+              <div class="avatar">${initial}</div>
+              <div class="emp-info">
+                <span class="name text">${s.full_name}</span>
+                <input class="edit-input hidden" value="${s.full_name}">
+                <span class="email text">${s.email}</span>
+                <input class="edit-input hidden" value="${s.email}" style="margin-top: 4px;">
+              </div>
+            </div>
+          </td>
+
+          <td>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </td>
+
+          <td>
+            <div class="location-cell ${locationClass}">
+              ${locationIcon} ${locationText}
+            </div>
+          </td>
+
+          <td class="actions-col">
+            <div class="action-btns">
+              <button class="icon-btn edit" onclick="editStaff(${s.id})" title="Edit Employee">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="icon-btn delete" onclick="deleteStaff(${s.id})" title="Remove Employee">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.style.opacity = "1";
+    renderPagination(totalPages);
+  }, 200);
 }
 /* ================= ADD STAFF ================= */
 function addStaff() {
@@ -122,10 +184,51 @@ function editStaff(id) {
     .forEach((el) => el.classList.remove("hidden"));
 
   const btn = row.querySelector(".edit");
-  btn.textContent = "💾";
+  btn.innerHTML = '<i class="fas fa-save"></i>';
   btn.disabled = false;
 
   btn.onclick = () => saveStaff(id, btn);
+}
+
+/* ================= FILTER & PAGINATION ================= */
+function filterStaff() {
+  currentPage = 1;
+  renderStaff();
+}
+
+function renderPagination(totalPages) {
+  const container = document.getElementById("paginationContainer");
+  if (totalPages <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  let html = `
+    <button class="page-btn prev" onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>
+      <i class="fas fa-chevron-left"></i> Prev
+    </button>
+    <div class="page-numbers">
+  `;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="page-num ${i === currentPage ? "active" : ""}" onclick="goToPage(${i})">${i}</button>`;
+  }
+  html += `
+    </div>
+    <button class="page-btn next" onclick="changePage(1)" ${currentPage === totalPages ? "disabled" : ""}>
+      Next <i class="fas fa-chevron-right"></i>
+    </button>
+  `;
+  container.innerHTML = html;
+}
+
+function changePage(direction) {
+  currentPage += direction;
+  renderStaff();
+}
+
+function goToPage(page) {
+  currentPage = page;
+  renderStaff();
 }
 
 /* ================= SAVE STAFF ================= */

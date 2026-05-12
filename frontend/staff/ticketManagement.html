@@ -2,63 +2,86 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Staff | Tra cứu & Quản lý vé</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý vé | SmartParking Staff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="ticketManagement.css" />
+    <link rel="stylesheet" href="topbar.css" />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
   </head>
   <body>
-    <header class="topbar">
-      <div class="logo">🚗 SmartParking</div>
-      <nav class="menu">
-        <a href="verify.html">Vận hành xe ra / vào</a>
-        <a href="slots.html">Quản lý ô đỗ</a>
-        <a href="ticketManagement.html" class="active">Quản lý vé</a>
-      </nav>
-      <div class="user">
-        <span id="parkingName"></span>
-        <button id="logoutBtn">Đăng xuất</button>
-      </div>
-    </header>
+    <div class="app-shell">
+      <div id="unified-topbar"></div>
 
-    <main class="dashboard">
-      <div class="header-actions">
-        <h2>Tra cứu & Quản lý Vé</h2>
-        <div class="actions-right">
-          <input type="text" id="searchInput" placeholder="Tìm biển số, khách hàng, mã vé..." />
-          <select id="filterType">
-            <option value="ALL">Tất cả</option>
-            <option value="PRE-BOOKED">Vé đặt trước</option>
-            <option value="MONTHLY">Vé tháng</option>
-            <option value="YEARLY">Vé năm</option>
-          </select>
-          <button class="btn primary" id="addTicketBtn"><i class="fas fa-plus"></i> Thêm vé dài hạn</button>
+      <main class="dashboard">
+        <div class="header-actions">
+          <div>
+            <h2>Quản lý Vé & Đăng ký</h2>
+            <p style="font-size: 0.875rem; color: var(--muted)">
+              Theo dõi, gia hạn và quản lý thông tin vé dài hạn.
+            </p>
+          </div>
+          <div class="actions-right">
+            <div style="position: relative">
+              <i
+                class="fas fa-search"
+                style="
+                  position: absolute;
+                  left: 14px;
+                  top: 50%;
+                  transform: translateY(-50%);
+                  color: var(--muted);
+                  font-size: 14px;
+                "
+              ></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Tìm biển số, khách hàng..."
+                style="padding-left: 38px"
+              />
+            </div>
+            <select id="filterType">
+              <option value="ALL">Tất cả loại vé</option>
+              <option value="PRE-BOOKED">Vé đặt trước</option>
+              <option value="MONTHLY">Vé tháng</option>
+              <option value="YEARLY">Vé năm</option>
+            </select>
+            <button class="btn primary" id="addTicketBtn">
+              <i class="fas fa-plus"></i>
+              <span>Thêm vé dài hạn</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="table-container">
-        <table id="ticketTable">
-          <thead>
-            <tr>
-              <th>Mã vé</th>
-              <th>Loại vé</th>
-              <th>Khách hàng</th>
-              <th>SĐT</th>
-              <th>Biển số</th>
-              <th>Loại xe</th>
-              <th>Hiệu lực đến</th>
-              <th>Trạng thái</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Dữ liệu JS -->
-          </tbody>
-        </table>
-      </div>
-    </main>
+        <!-- TICKET LIST HEADER -->
+        <div class="ticket-row-header">
+          <span>Thông tin vé</span>
+          <span>Khách hàng</span>
+          <span>Biển số</span>
+          <span>Loại xe</span>
+          <span>Hiệu lực</span>
+          <span>Trạng thái</span>
+          <span style="text-align: right">Thao tác</span>
+        </div>
+
+        <!-- TICKET LIST CONTAINER -->
+        <div class="ticket-list" id="ticketListContainer">
+          <!-- Rendered dynamically by JS -->
+        </div>
+
+        <!-- PAGINATION CONTAINER -->
+        <div id="paginationContainer" class="pagination-container"></div>
+      </main>
+    </div>
 
     <!-- Modal Thêm/Sửa -->
     <div id="ticketModal" class="modal">
@@ -76,6 +99,7 @@
               <select id="ticketType" required>
                 <option value="MONTHLY">Vé tháng</option>
                 <option value="YEARLY">Vé năm</option>
+                <option value="PRE-BOOKED">Đặt trước</option>
               </select>
             </div>
             <div class="form-group">
@@ -129,19 +153,22 @@
               <label>Trạng thái</label>
               <select id="status">
                 <option value="ACTIVE">Hoạt động</option>
+                <option value="RESERVED">Đặt chỗ</option>
                 <option value="EXPIRED">Hết hạn</option>
                 <option value="CANCELLED">Hủy bỏ</option>
               </select>
             </div>
           </div>
 
-          <div class="form-group full-width">
+          <div class="form-group full-width" style="margin-top: 10px">
             <label>Ghi chú</label>
-            <textarea id="notes" rows="2"></textarea>
+            <textarea id="notes" rows="2" style="resize: none"></textarea>
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn secondary" id="cancelFormBtn">Hủy</button>
+            <button type="button" class="btn secondary" id="cancelFormBtn">
+              Hủy
+            </button>
             <button type="submit" class="btn primary">Lưu thông tin</button>
           </div>
         </form>
@@ -150,17 +177,42 @@
 
     <!-- Modal Xác nhận Xóa -->
     <div id="deleteModal" class="modal">
-      <div class="modal-content warning">
-        <h3>Xác nhận xóa</h3>
-        <p>Bạn có chắc chắn muốn xóa vé này không? Thao tác này không thể hoàn tác.</p>
-        <div class="modal-footer">
-          <button class="btn secondary" onclick="closeDeleteModal()">Hủy</button>
-          <button class="btn danger" id="confirmDeleteBtn">Xóa vé</button>
+      <div class="modal-content" style="max-width: 400px; text-align: center">
+        <div
+          style="
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 91, 118, 0.1);
+            color: var(--red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+          "
+        >
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 style="margin-bottom: 8px">Xác nhận xóa vé?</h3>
+        <p
+          style="color: var(--muted); font-size: 0.875rem; margin-bottom: 24px"
+        >
+          Hành động này sẽ xóa vĩnh viễn vé khỏi hệ thống và không thể hoàn tác.
+        </p>
+        <div class="modal-footer" style="justify-content: center">
+          <button class="btn secondary" onclick="closeDeleteModal()">
+            Quay lại
+          </button>
+          <button class="btn danger" id="confirmDeleteBtn">Xóa dữ liệu</button>
         </div>
       </div>
     </div>
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="topbar.js"></script>
+    <script>
+      renderTopbar("ticket");
+    </script>
     <script src="ticketManagement.js"></script>
   </body>
 </html>

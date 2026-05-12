@@ -1,29 +1,27 @@
 body {
-  padding: 40px 100px;
-  font-family: Arial, sans-serif;
-  background-color: #fff;
-  margin-left: 70px;
-  margin-right: 70px;
-  box-sizing: border-box;
+  padding: 0;
   margin: 0;
+  font-family: "Inter", sans-serif;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  padding-top: 70px; /* Account for fixed header */
 }
 
 header {
-  width: 95%;
-  background-color: white;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 40px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: fixed;
-  top: 0;
-  z-index: 1000;
-  height: 50px;
+  padding: 0 5%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   position: fixed;
   top: 0;
   left: 0;
-  transition: top 0.3s ease-in-out;
+  z-index: 1500;
+  height: 70px;
+  box-sizing: border-box;
 }
 
 /* Logo */
@@ -118,232 +116,700 @@ nav ul li a:hover {
 
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
+  transition: all 0.3s ease;
 }
+
 .modal-content {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  border-radius: 30px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   text-align: center;
+  max-width: 420px;
+  width: 90%;
+  transform: translateY(0);
+  animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.location-icon {
+  width: 80px;
+  height: 80px;
+  background: #f0fdf4;
+  color: #22c55e;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  box-shadow: 0 10px 20px rgba(34, 197, 94, 0.15);
+}
+
+.location-modal h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.location-modal p {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.btn.ghost {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
 }
 
 /*  */
-.parking-container,
-.spot-container {
-  display: none;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px;
-  justify-content: center;
-}
+/* ===== PARKING GRID CONTAINER ===== */
 .parking-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-  padding: 150px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  padding: 40px 8%;
+  background: #f8fafc;
+  min-height: 100vh;
 }
+
+/* ===== PREMIUM PARKING CARD ===== */
 .parking-card {
-  width: 325px;
-  height: 240px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  border-radius: 24px;
   overflow: hidden;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f1f5f9;
 }
+
+.parking-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+}
+
+/* Image Container & Overlay */
+.card-img-wrapper {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  overflow: hidden;
+}
+
 .parking-card img {
   width: 100%;
-  height: 120px;
+  height: 100%;
   object-fit: cover;
+  transition: transform 0.6s ease;
 }
-.parking-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+
+.parking-card:hover img {
+  transform: scale(1.1);
 }
-.parking-card p {
-  margin: 0;
-  padding: 0.5rem;
-  font-weight: bold;
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
+}
+
+/* Badge Styles */
+.badge {
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-available {
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+}
+.badge-full {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+}
+
+/* Content Area */
+.card-content {
+  padding: 24px;
+  flex-grow: 1;
+}
+
+.lot-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px !important;
+  display: block;
+}
+
+.lot-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 16px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.lot-info i {
+  color: #3b82f6;
+}
+
+/* Capacity Bar */
+.capacity-container {
+  margin-bottom: 20px;
+}
+
+.capacity-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.capacity-label b {
+  color: #0f172a;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease-in-out;
+}
+
+.progress-fill.green {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+.progress-fill.orange {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+.progress-fill.red {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* Price & Button Footer */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.price-tag {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.price-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0d9488;
+}
+
+.btn-book {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  transition: all 0.3s;
+}
+
+.btn-book:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+/* ===== HERO SECTION ===== */
+.hero-section {
+  padding: 80px 0 60px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+  overflow: hidden;
   text-align: center;
 }
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.05) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.hero-content h1 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.hero-content p {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 40px;
+}
+
 .search-bar {
-  padding: 20px;
-  display: none;
+  display: flex;
   justify-content: center;
-  align-items: center;
+  margin-top: -20px;
 }
 
 .search-box {
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 650px;
 }
 
 .search-icon {
   position: absolute;
   top: 50%;
-  left: 14px;
+  left: 24px;
   transform: translateY(-50%);
-  font-size: 16px;
-  color: #9aa0a6;
+  font-size: 18px;
+  color: #94a3b8;
 }
 
 .search-box input {
   width: 100%;
-  padding: 14px 18px 14px 42px;
+  padding: 20px 30px 20px 60px;
   font-size: 16px;
-  border: 1px solid #dcdfe4;
-  border-radius: 14px;
+  border: none;
+  border-radius: 24px;
   outline: none;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.25s ease;
+  background: #ffffff;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1e293b;
 }
 
-.search-box input::placeholder {
-  color: #9aa0a6;
+.search-box input:focus {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 45px rgba(59, 130, 246, 0.15);
+}
+
+.main-content {
+  background: #f8fafc;
+  padding-bottom: 60px;
+}
+
+/* ===== PAGINATION ===== */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 40px 0 60px;
+}
+
+.page-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.page-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.page-dots {
+  color: #94a3b8;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #94a3b8;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 16px 24px 16px 54px;
+  font-size: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  outline: none;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1e293b;
 }
 
 .search-box input:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.12);
+  transform: translateY(-2px);
 }
-/* ===== PARKING LIST ===== */
-.parking-container {
+/* New premium grid styles are defined above */
+
+/* ===== DETAILED VIEW HEADER ===== */
+.parking-header-wrapper {
+  padding: 24px 8% 16px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.detailed-nav-bar {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 25px;
-  padding: 40px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.parking-card {
-  width: 320px;
-  background: #fff;
+.nav-btn-back,
+.nav-btn-cancel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
   border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.25s;
-}
-
-.parking-card:hover {
-  transform: translateY(-6px);
-}
-
-.parking-card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-}
-
-.parking-card p {
-  text-align: center;
-  margin: 6px 0;
-  font-weight: 600;
-}
-
-/* ===== TIÊU ĐỀ BÃI XE ===== */
-.parking-header {
-  text-align: center;
-  margin: 20px 0;
-}
-
-.parking-title {
-  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+}
+
+.nav-btn-back {
+  background: #ffffff;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.nav-btn-back:hover {
+  background: #f8fafc;
+  color: #3b82f6;
+  border-color: #3b82f6;
+  transform: translateX(-5px);
+}
+
+.nav-btn-cancel {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.nav-btn-cancel:hover {
+  background: #fee2e2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.detailed-lot-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+  margin-top: -100px;
 }
 
 .parking-summary {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  font-size: 15px;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 16px 30px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  margin: 0 auto 30px;
+  width: fit-content;
+  border: 1px solid #f1f5f9;
 }
 
-/* .legend-box {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  display: inline-block;
-  margin-right: 6px;
+.parking-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
 }
 
-.legend-box.total {
-  background: #6b7280;
+.parking-summary b {
+  color: #0f172a;
+  font-size: 14px;
 }
-.legend-box.free {
-  background: #16a34a;
-}
-.legend-box.occupied {
-  background: #dc2626;
-} */
+
 .legend-box {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  margin-right: 6px;
+  width: 12px;
+  height: 12px;
   border-radius: 4px;
 }
 
 /* 🟢 Trống */
 .legend-box.free {
-  background: #4caf50;
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
 }
 
-/* ⚪ Chưa thanh toán */
+/* 🟡 Chưa thanh toán */
 .legend-box.pending {
-  background: #cfcfcf;
+  background: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
 }
 
 /* ⚪ Đã thanh toán */
 .legend-box.paid {
-  background: #9e9e9e;
+  background: #94a3b8;
+  box-shadow: 0 0 10px rgba(148, 163, 184, 0.2);
 }
 
 /* 🔴 Đang đỗ */
 .legend-box.occupied {
-  background: #f44336;
+  background: #f87171;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
 }
 
-/* Tổng */
+/* 🟠 Ra tạm */
+.legend-box.temp-out {
+  background: #fb923c;
+  box-shadow: 0 0 10px rgba(251, 146, 60, 0.3);
+}
+
+/* 🔘 Tổng */
 .legend-box.total {
-  background: #607d8b;
+  background: #64748b;
 }
 
 /* ===== PAYMENT MODAL ===== */
 .payment-modal {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: none;
-  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
   justify-content: center;
-  z-index: 1001;
+  align-items: center;
 }
+
 .payment-modal-content {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 40px;
+  border-radius: 32px;
+  max-width: 450px;
+  width: 90%;
   text-align: center;
-  max-width: 300px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalScaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 24px;
+}
+
+.payment-modal-content h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.payment-modal-content p {
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.payment-modal-content b {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn.primary {
+  background: #3b82f6;
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn.primary:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: #64748b;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn.ghost:hover {
+  background: #f8fafc;
+  color: #1e293b;
+  border-color: #cbd5e1;
 }
 /* ===== TOAST NOTIFICATION ===== */
 #toast-container {
@@ -531,6 +997,51 @@ nav ul li a:hover {
   background: #16a34a;
 }
 
+/* 1. Form nhập biển số (ô tô / xe máy) */
+#plateInputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+#plateInputGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+#plateInputGroup input {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background: #fff;
+}
+
+#plateInputGroup input:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+/* 2. Select loại xe */
+#vehicleTypeInput {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background: #fff;
+}
+
+#vehicleTypeInput:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
 /* ===== ANIMATION ===== */
 @keyframes scaleIn {
   from {
@@ -652,249 +1163,475 @@ nav ul li a:hover {
   text-decoration: none;
 }
 
-/* ===== MAP WRAPPER ===== */
+/* ============================================================
+   PARKING MAP — ZONE-BASED PREMIUM LAYOUT
+   ============================================================ */
+
+/* ── Outer dark shell ── */
 .parking-map-wrapper {
   width: 100%;
-  max-width: 100%; /* Đảm bảo không vượt quá chiều ngang màn hình */
-  background: #252a34;
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
-  margin-top: 20px;
-  overflow: hidden; /* Ngăn tràn ra ngoài viền đen */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* ===== MAP ===== */
-.parking-map {
-  display: flex;
-  align-items: stretch;
-  gap: 30px;
-  max-width: 100%; /* Không bao giờ rộng hơn wrapper */
-  overflow-x: auto; /* Cuộn ngang bên TRONG viền đen */
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 20px;
+  padding: 28px 28px 36px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  margin-top: 24px;
+  overflow: hidden;
   position: relative;
-  background: #333;
-  border-radius: 12px;
-  padding: 30px;
-  border: 4px solid #444;
 }
 
-/* ===== LANE XE ===== */
-.lane {
-  width: 100px;
-  background: #333;
-  border-left: 2px dashed rgba(255, 255, 255, 0.3);
-  border-right: 2px dashed rgba(255, 255, 255, 0.3);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.lane::before {
+.parking-map-wrapper::before {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  border-left: 2px solid #ffcc00; /* Yellow line */
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 20% 10%,
+      rgba(59, 130, 246, 0.07) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 80% 90%,
+      rgba(16, 185, 129, 0.05) 0%,
+      transparent 55%
+    );
+  pointer-events: none;
 }
 
-.lane::after {
-  content: "ENTRY ⬆";
-  position: sticky;
-  top: 20px;
-  background: #ffcc00;
-  color: #000;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  z-index: 5;
+/* ── Legend strip ── */
+#legend {
+  display: flex !important;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
-.lane.right::after {
-  content: "EXIT ⬇";
-}
-
-/* ===== ZONE ===== */
-.zones-wrapper {
+/* ── Parking Layout Split ── */
+.parking-layout {
   display: flex;
-  gap: 100px;
+  gap: 32px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
-.zone {
+.parking-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.zone h3 {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  padding: 8px 20px;
-  border-radius: 4px;
+.car-section {
+  flex: 0 0 25%; /* Slightly larger than 20% for better fit of grid */
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.bike-section {
+  flex: 1;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+  border-color: rgba(16, 185, 129, 0.15);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header i {
+  font-size: 22px;
+  color: #3b82f6;
+}
+
+.bike-section .section-header i {
+  color: #10b981;
+}
+
+.section-header h3 {
   font-size: 16px;
-  border-left: 4px solid #007bff;
+  font-weight: 800;
+  color: #f1f5f9;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
-/* ===== SPOT GRID ===== */
-.spot-grid {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    65px
-  ); /* Tự động xuống dòng nếu thiếu chỗ */
-  min-width: 350px; /* Tối thiểu cho một khu */
-  gap: 15px 20px;
+@media (max-width: 1100px) {
+  .parking-layout {
+    flex-direction: column;
+  }
+  .car-section {
+    flex: none;
+    width: 100%;
+  }
 }
 
-/* ===== SPOT ===== */
-.spot {
-  width: 65px;
-  height: 110px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  position: relative;
+/* ── Zone Section ── */
+.zone {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 20px 22px 24px;
+  transition: box-shadow 0.2s;
+}
+
+.zone:hover {
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+/* ── Zone header row ── */
+.zone-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.zone h3 {
+  background: transparent;
+  color: #f1f5f9;
+  padding: 0;
+  border: none;
+  border-left: 3px solid #3b82f6;
+  padding-left: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.zone h3 span {
+  font-size: 12px;
+  font-weight: 400;
+  color: #94a3b8;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.zone-body-layout {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  overflow: hidden;
+  gap: 24px;
 }
 
-.spot i {
-  font-size: 32px;
-  margin-bottom: 10px;
-  transition: transform 0.3s ease;
+.zone-body-layout.split-layout {
+  flex-direction: row;
+}
+
+.grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.car-width {
+  flex: 0 0 25%;
+}
+
+.bike-width {
+  flex: 1;
+}
+
+.sub-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sub-header i {
+  font-size: 14px;
+}
+
+.car-width .sub-header i { color: #3b82f6; }
+.bike-width .sub-header i { color: #10b981; }
+.full-width .sub-header i { color: #f59e0b; }
+
+@media (max-width: 1024px) {
+  .zone-body-layout.split-layout {
+    flex-direction: column;
+  }
+  .car-width {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* ── Spot Grid ── */
+.spot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 72px);
+  gap: 12px 14px;
+  min-width: 0;
+}
+
+/* ── Individual Spot Card ── */
+.spot {
+  width: 72px;
+  height: 100px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 6px 4px 8px;
+}
+
+.spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  transition: opacity 0.2s;
+  border-radius: inherit;
+}
+
+.spot:hover::before {
+  opacity: 1;
 }
 
 .spot:hover {
-  border-color: #007bff;
-  background: rgba(0, 123, 255, 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
+/* Icon */
+.spot i {
+  font-size: 26px;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+.spot:hover i {
+  transform: scale(1.12);
+}
+
+/* Spot number label */
 .spot-number {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.2;
 }
 
-/* Trạng thái đỗ */
+/* ── State colours ── */
 .spot.free {
-  border-color: #2ecc71;
-  color: #2ecc71;
+  border-color: rgba(52, 211, 153, 0.5);
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.07);
 }
 .spot.free:hover {
-  background: rgba(46, 204, 113, 0.1);
+  border-color: #34d399;
+  box-shadow:
+    0 0 0 3px rgba(52, 211, 153, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .spot.parking {
-  background: rgba(244, 67, 54, 0.15);
-  border-color: #f44336;
-  color: #f44336;
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
 }
 
 .spot.paid {
-  background: rgba(158, 158, 158, 0.15);
-  border-color: #9e9e9e;
-  color: #9e9e9e;
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.07);
 }
 
 .spot.pending {
-  background: rgba(255, 193, 7, 0.15);
-  border-color: #ffc107;
-  color: #ffc107;
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
 }
 
 .spot.temp-out {
-  background: rgba(255, 152, 0, 0.15);
-  border-color: #ff9800;
-  color: #ff9800;
+  border-color: rgba(251, 146, 60, 0.5);
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.09);
 }
 
 .spot.locked {
-  background: #e2e8f0;
-  border-color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.3);
   color: #64748b;
+  background: rgba(100, 116, 139, 0.05);
   cursor: not-allowed;
 }
-
 .spot.locked:hover {
-  background: #e2e8f0;
-  border-color: #94a3b8;
   transform: none;
+  box-shadow: none;
 }
 
-/* ===== MOBILE ===== */
+/* cancel-mode highlight */
+.spot.cancelable {
+  outline: 2.5px dashed #ef4444;
+  cursor: pointer !important;
+}
+.spot.cancelable:hover {
+  background: rgba(239, 68, 68, 0.14) !important;
+  transform: scale(1.06);
+}
+
+/* ── Legend strip (top summary) ── */
+.parking-summary {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  font-size: 13px;
+  color: #374151;
+  margin-top: 4px;
+}
+
+.parking-summary div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.legend-box.free {
+  background: #34d399;
+}
+.legend-box.pending {
+  background: #fbbf24;
+}
+.legend-box.paid {
+  background: #94a3b8;
+}
+.legend-box.occupied {
+  background: #f87171;
+}
+.legend-box.temp-out {
+  background: #fb923c;
+}
+.legend-box.total {
+  background: #6b7280;
+}
+
+/* ── Parking header ── */
+.parking-header {
+  text-align: center;
+  margin: 18px 0 6px;
+  position: relative;
+}
+
+.parking-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+/* Cancel button repositioned */
+.cancel-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 10;
+}
+.cancel-btn:hover {
+  background: #b91c1c;
+}
+
+/* ── Lane decorations (removed from HTML, CSS kept for fallback) ── */
+.lane {
+  display: none;
+}
+
+/* ── Mobile ── */
 @media (max-width: 768px) {
-  .parking-map {
-    gap: 20px;
+  .parking-map-wrapper {
+    padding: 16px 12px 24px;
   }
-
-  .lane {
-    width: 60px;
-  }
-
   .spot-grid {
-    --cols: 5;
+    grid-template-columns: repeat(auto-fill, 62px);
+    gap: 10px;
+  }
+  .spot {
+    width: 62px;
+    height: 90px;
+  }
+  .spot i {
+    font-size: 22px;
+  }
+  .cancel-btn {
+    position: static;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  .parking-title {
+    font-size: 20px;
   }
 }
+
+@media (max-width: 480px) {
+  .spot-grid {
+    grid-template-columns: repeat(auto-fill, 58px);
+    gap: 8px;
+  }
+  .spot {
+    width: 58px;
+    height: 84px;
+  }
+}
+/* logoutBtn */
 #logoutBtn {
   background-color: #ef4444;
 }
-
 #logoutBtn:hover {
   background-color: #dc2626;
   color: white;
 }
-/* spot  /* ===== TRẠNG THÁI ===== */
-.spot.parking {
-  background: red;
-  color: white;
-}
 
-.spot.paid {
-  background: #9e9e9e;
-}
-
-.spot.pending {
-  background: #cfcfcf;
-}
-
-.spot.free {
-  background: #2ecc71;
-}
-.spot.temp-out {
-  background-color: #ffd54f;
-  border: 2px solid #f9a825;
-  color: #000;
-}
-.legend-box.temp-out {
-  background: #ffd54f;
-  border: 2px solid #f9a825;
-}
-.spot.cancelable {
-  outline: 3px dashed #ef4444;
-  pointer-events: auto !important;
-  cursor: pointer !important;
-}
-
-.spot.cancelable:hover {
-  background: #fee2e2;
-  transform: scale(1.08);
-}
-.spot.cancelable::after {
-  display: none !important;
-}
 /* hủy đặt chỗ */
 /* ===== MODAL OVERLAY ===== */
 .cancel-modal {

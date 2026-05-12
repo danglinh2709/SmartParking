@@ -5,27 +5,22 @@
     <title>Quản lý bãi đỗ</title>
     <link rel="stylesheet" href="../manager/manager.css" />
     <link rel="stylesheet" href="../manager/parking-lots.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </head>
   <body>
-    <div class="sidebar">
-      <h2>Quản Lý SmartParking</h2>
-      <a class="active" href="dashboard.html">Dashboard</a>
-      <a href="parking-lots.html">Bãi đỗ</a>
-      <a href="staff.html">Nhân viên</a>
-      <a href="assign-staff.html">Phân công</a>
-      <a href="contact-messages.html">Chăm sóc khách hàng</a>
-    </div>
+
 
     <div class="main">
       <div class="header">
         <h1>🏢 Danh sách bãi đỗ</h1>
         <button class="add-btn" onclick="openAddParkingForm()">
-          Thêm bãi đỗ
+          <i class="fas fa-plus"></i> Thêm bãi đỗ
         </button>
       </div>
-      <div id="addParkingModal" class="modal hidden">
+      <div id="parkingModal" class="modal hidden">
         <div class="modal-content">
-          <h3 class="modal-title">Thêm bãi đỗ mới</h3>
+          <h3 id="modalTitle" class="modal-title">Thông tin bãi đỗ</h3>
+          <input type="hidden" id="p_id" />
 
           <div class="form-group">
             <label>Tên bãi đỗ</label>
@@ -38,11 +33,12 @@
           </div>
 
           <div class="form-group">
-            <label>Ảnh bãi đỗ</label>
+            <label>Ảnh bãi đỗ (Để trống nếu không đổi)</label>
             <div class="file-input">
               <input id="p_image" type="file" accept="image/*" />
               <span>📷 Chọn ảnh bãi đỗ</span>
             </div>
+            <div id="p_image_preview" style="margin-top: 10px; font-size: 12px; color: #64748b;"></div>
           </div>
 
           <div class="form-row">
@@ -68,28 +64,96 @@
           </div>
 
           <div class="actions">
-            <button class="btn primary" onclick="submitParking()">
+            <button id="btnSubmit" class="btn primary" onclick="submitParking()">
               💾 Lưu
             </button>
-            <button class="btn ghost" onclick="closeAddParkingForm()">
+            <button class="btn ghost" onclick="closeParkingForm()">
               ❌ Huỷ
             </button>
           </div>
         </div>
       </div>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Tên bãi</th>
-            <th>Tổng chỗ</th>
-            <th>Chỗ trống</th>
-            <th>Trạng thái</th>
-            <th class="actions">Nghiệp vụ</th>
-          </tr>
-        </thead>
-        <tbody id="parkingTable"></tbody>
-      </table>
+      <!-- STAFF MODAL -->
+      <div id="staffModal" class="modal hidden">
+        <div class="modal-content staff-modal-content">
+
+          <!-- Header -->
+          <div class="sm-header">
+            <div class="sm-header-icon"><i class="fas fa-users"></i></div>
+            <div class="sm-header-text">
+              <h3 id="staffModalTitle">Nhân viên bãi đỗ</h3>
+              <p id="staffModalSubtitle">Quản lý nhân viên phụ trách</p>
+            </div>
+            <button class="sm-close-btn" onclick="closeStaffModal()" title="Đóng">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Add staff row -->
+          <div class="sm-add-row">
+            <div class="sm-select-wrap">
+              <i class="fas fa-user-tie sm-select-icon"></i>
+              <select id="staffSelectAdd" class="sm-select">
+                <option value="">-- Chọn nhân viên để thêm --</option>
+              </select>
+            </div>
+            <button class="sm-add-btn" onclick="addStaffToLot()">
+              <i class="fas fa-user-plus"></i>
+              <span>Thêm</span>
+            </button>
+          </div>
+
+          <!-- Divider -->
+          <div class="sm-divider">
+            <span>Danh sách đang phân công</span>
+          </div>
+
+          <!-- Staff list -->
+          <div id="staffListInModal" class="sm-list">
+            <!-- Rendered by JS -->
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-bar-wrap">
+        <div class="search-input-wrap">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Tìm kiếm bãi đỗ theo tên, khu vực..."
+            oninput="filterAndRender()"
+            autocomplete="off"
+          />
+          <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Xoá tìm kiếm">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="parking-table" id="parkingTable">
+          <thead>
+            <tr>
+              <th class="col-thumb">Ảnh</th>
+              <th class="col-name">Bãi đỗ</th>
+              <th class="col-status">Trạng thái</th>
+              <th class="col-capacity">Sức chứa</th>
+              <th class="col-usage">Tỷ lệ sử dụng</th>
+              <th class="col-location">Định vị</th>
+              <th class="col-staff">Nhân viên</th>
+              <th class="col-actions">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="parkingGrid">
+            <!-- Rows rendered by JS -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <script src="../manager/manager.js"></script>

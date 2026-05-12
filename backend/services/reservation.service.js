@@ -13,6 +13,8 @@ exports.createReservation = async (data, userId, app) => {
     end_time,
     hours,
     license_plate,
+    vehicle_type = "CAR",
+    zone_id = null,
   } = data;
 
   const hoursNum = parseInt(hours, 10);
@@ -28,7 +30,7 @@ exports.createReservation = async (data, userId, app) => {
     throw { status: 400, message: "Dữ liệu đặt chỗ không hợp lệ" };
   }
 
-  if (!license_plate) {
+  if (vehicle_type !== "BICYCLE" && !license_plate) {
     throw { status: 400, message: "Thiếu biển số xe" };
   }
 
@@ -38,7 +40,7 @@ exports.createReservation = async (data, userId, app) => {
   /* ========= 2. CHECK CHỖ ========= */
   const occupied = await reservationModel.isSpotOccupied(
     parking_lot_id,
-    spot_number
+    spot_number,
   );
 
   if (occupied) {
@@ -52,7 +54,7 @@ exports.createReservation = async (data, userId, app) => {
   const conflict = await reservationModel.hasPlateConflict(
     license_plate,
     startTimeSQL,
-    endTimeSQL
+    endTimeSQL,
   );
 
   if (conflict) {
@@ -61,6 +63,39 @@ exports.createReservation = async (data, userId, app) => {
       message: `Biển số ${license_plate} đã có lịch gửi từ ${conflict.start_time} → ${conflict.end_time}.`,
     };
   }
+
+  /* ========= 3.5 TÍNH TIỀN ========= */
+  const pool = await poolPromise;
+  let hourlyRate = 10000;
+
+  if (zone_id) {
+    const rateRes = await pool
+      .request()
+      .input("zone", zone_id)
+      .input("type", vehicle_type)
+      .query(
+        `SELECT TOP 1 hourly_rate FROM Pricing WHERE zone_id = @zone AND vehicle_type = @type`,
+      );
+
+    if (rateRes.recordset.length > 0) {
+      hourlyRate = rateRes.recordset[0].hourly_rate;
+    }
+  } else {
+    const lotRes = await pool
+      .request()
+      .input("lot", parking_lot_id)
+      .query(
+        `SELECT available_spots, total_spots FROM ParkingLot WHERE id = @lot`,
+      );
+
+    if (lotRes.recordset.length > 0) {
+      const { available_spots, total_spots } = lotRes.recordset[0];
+      const { calculateDynamicPrice } = require("../utils/pricing.util");
+      hourlyRate = calculateDynamicPrice(total_spots, available_spots);
+    }
+  }
+
+  const amount = hoursNum * hourlyRate;
 
   /* ========= 4. TẠO VÉ ========= */
   const ticket = "TICKET-" + uuidv4().slice(0, 8);
@@ -74,6 +109,9 @@ exports.createReservation = async (data, userId, app) => {
     endTimeSQL,
     hoursNum,
     userId,
+    vehicle_type,
+    zone_id,
+    amount,
   });
 
   await parkingLotModel.decreaseAvailable(parking_lot_id);
@@ -92,7 +130,7 @@ exports.createReservation = async (data, userId, app) => {
 exports.cancelReservation = async (
   { parking_lot_id, spot_number },
   userId,
-  app
+  app,
 ) => {
   const pool = await poolPromise;
   const tx = pool.transaction();
@@ -102,7 +140,7 @@ exports.cancelReservation = async (
     const reservation = await reservationModel.getCancelableByUser(
       parking_lot_id,
       spot_number,
-      userId
+      userId,
     );
 
     if (!reservation) {
@@ -118,7 +156,7 @@ exports.cancelReservation = async (
       if (diffMinutes <= 10) {
         const payment = await paymentModel.getSuccessByTicket(
           reservation.ticket,
-          tx
+          tx,
         );
 
         if (!payment) {

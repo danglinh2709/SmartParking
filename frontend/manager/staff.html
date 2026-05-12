@@ -2,76 +2,97 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Nhân viên</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Management | SmartParking BI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="../manager/manager.css" />
     <link rel="stylesheet" href="../manager/staff.css" />
   </head>
   <body>
-    <div class="sidebar">
-      <h2>Quản Lý SmartParking</h2>
-      <a class="active" href="dashboard.html">Dashboard</a>
-      <a href="parking-lots.html">Bãi đỗ</a>
-      <a href="staff.html">Nhân viên</a>
-      <a href="assign-staff.html">Phân công</a>
-      <a href="contact-messages.html">Chăm sóc khách hàng</a>
-    </div>
+
     <div class="main">
-      <div class="header">
-        <h1>👷 Danh sách nhân viên</h1>
+      <div class="page-header">
+        <div class="header-left">
+          <h1>Staff Management</h1>
+          <p>Manage employees, roles, and parking lot assignments</p>
+        </div>
+        <div class="header-right">
+          <button class="btn-primary" onclick="addStaff()">
+            <i class="fas fa-plus"></i> Add Employee
+          </button>
+        </div>
       </div>
-      <button class="btn-add" onclick="addStaff()">Thêm mới</button>
-      <table>
-        <thead>
-          <tr>
-            <th>Tên</th>
-            <th>Email</th>
-            <th>Bãi đang làm</th>
-            <th>Trạng thái</th>
-            <th>Nghiệp vụ</th>
-          </tr>
-        </thead>
-        <tbody id="staffTable">
-          <!-- JS render -->
-        </tbody>
-      </table>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchStaff" placeholder="Search by name or email..." onkeyup="filterStaff()" />
+        </div>
+        <div class="filter-box">
+          <select id="statusFilter" onchange="filterStaff()">
+            <option value="all">All Assignments</option>
+            <option value="assigned">Assigned Location</option>
+            <option value="unassigned">Unassigned (Idle)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="saas-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Status</th>
+              <th>Assigned Location</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffTable">
+            <!-- JS render -->
+          </tbody>
+        </table>
+        <div id="paginationContainer" class="pagination-container"></div>
+      </div>
     </div>
+
     <!-- MODAL THÊM NHÂN VIÊN -->
     <div id="addStaffModal" class="modal hidden">
       <div class="modal-content fancy">
         <div class="modal-header">
-          <span class="modal-icon">👷‍♂️</span>
+          <span class="modal-icon"><i class="fas fa-user-plus" style="color: #0f172a;"></i></span>
           <div>
-            <h3>Thêm nhân viên mới</h3>
-            <p>Tạo tài khoản nhân viên cho hệ thống</p>
+            <h3>Add New Employee</h3>
+            <p>Create a staff account for the system</p>
           </div>
         </div>
 
         <div class="modal-body">
           <div class="form-group">
-            <label>Họ và tên</label>
-            <input id="addFullName" placeholder="VD: Nguyễn Văn A" />
+            <label>Full Name</label>
+            <input id="addFullName" placeholder="e.g. Nguyen Van A" />
           </div>
 
           <div class="form-group">
-            <label>Email</label>
-            <input id="addEmail" placeholder="email@company.com" />
+            <label>Email Address</label>
+            <input id="addEmail" type="email" placeholder="email@company.com" />
           </div>
 
           <div class="form-group">
-            <label>Số điện thoại</label>
-            <input id="addPhone" placeholder="VD: 0987xxxxxx" />
+            <label>Phone Number</label>
+            <input id="addPhone" placeholder="e.g. 0987xxxxxx" />
           </div>
 
           <div class="note">
-            🔐 Nhân viên sẽ nhận được tài khoản đăng nhập qua email.
+            <i class="fas fa-lock"></i> Employees will receive their login credentials via email.
           </div>
         </div>
 
         <div class="modal-actions">
-          <button class="btn secondary" onclick="closeAddStaff()">Huỷ</button>
-          <button class="btn primary" onclick="submitAddStaff()">
-            Tạo nhân viên
-          </button>
+          <button class="btn secondary" onclick="closeAddStaff()">Cancel</button>
+          <button class="btn primary" onclick="submitAddStaff()">Create Account</button>
         </div>
       </div>
     </div>

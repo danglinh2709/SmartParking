@@ -12,12 +12,18 @@ exports.getAll = async () => {
       u.Email AS email,
       u.Phone AS phone,
       u.IsActive AS is_active,
-      p.name AS parking_name
+      (
+        SELECT COUNT(*)
+        FROM ParkingLotStaff pls2
+        WHERE pls2.user_id = u.UserID AND pls2.is_active = 1
+      ) AS lot_count,
+      (
+        SELECT STRING_AGG(p.name, ', ')
+        FROM ParkingLotStaff pls2
+        JOIN ParkingLot p ON pls2.parking_lot_id = p.id
+        WHERE pls2.user_id = u.UserID AND pls2.is_active = 1
+      ) AS parking_names
     FROM Users u
-    LEFT JOIN ParkingLotStaff pls 
-      ON u.UserID = pls.user_id AND pls.is_active = 1
-    LEFT JOIN ParkingLot p 
-      ON pls.parking_lot_id = p.id
     WHERE u.Role = 'staff'
       AND u.IsActive = 1
     ORDER BY u.FullName

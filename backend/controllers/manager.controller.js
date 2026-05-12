@@ -43,18 +43,28 @@ exports.createParkingLot = async (req, res) => {
 exports.updateParkingLot = async (req, res) => {
   try {
     requireManager(req);
-    res.json(await parkingLotService.update(req.params.id, req.body));
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ msg: "ID không hợp lệ" });
+
+    const result = await parkingLotService.update(id, req.body);
+    res.json(result);
   } catch (e) {
-    res.status(e.status || 500).json({ msg: e.message });
+    console.error(`MANAGER UPDATE LOT [${req.params.id}] ERROR:`, e);
+    res.status(e.status || 500).json({ msg: e.message || "Lỗi server" });
   }
 };
 
 exports.deleteParkingLot = async (req, res) => {
   try {
     requireManager(req);
-    res.json(await parkingLotService.remove(req.params.id));
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ msg: "ID không hợp lệ" });
+
+    const result = await parkingLotService.remove(id);
+    res.json(result);
   } catch (e) {
-    res.status(e.status || 500).json({ msg: e.message });
+    console.error(`MANAGER DELETE LOT [${req.params.id}] ERROR:`, e);
+    res.status(e.status || 500).json({ msg: e.message || "Lỗi server" });
   }
 };
 
@@ -106,7 +116,29 @@ exports.assignStaff = async (req, res) => {
 };
 
 exports.getAssignments = async (req, res) => {
-  res.json(await assignmentService.getAll());
+  try {
+    res.json(await assignmentService.getAll());
+  } catch (e) {
+    res.status(500).json({ msg: e.message });
+  }
+};
+
+exports.getStaffByLot = async (req, res) => {
+  try {
+    requireManager(req);
+    res.json(await assignmentService.getByLot(req.params.lotId));
+  } catch (e) {
+    res.status(e.status || 500).json({ msg: e.message });
+  }
+};
+
+exports.getAssignmentsByStaff = async (req, res) => {
+  try {
+    requireManager(req);
+    res.json(await assignmentService.getByStaff(req.params.staffId));
+  } catch (e) {
+    res.status(e.status || 500).json({ msg: e.message });
+  }
 };
 
 exports.updateAssignment = async (req, res) => {
@@ -139,6 +171,19 @@ exports.getContactMessages = async (req, res) => {
 
 exports.readContactMessage = async (req, res) => {
   res.json(await contactService.read(req.params.id));
+};
+
+exports.deleteContactMessage = async (req, res) => {
+  try {
+    requireManager(req);
+    const result = await contactService.remove(req.params.id);
+    if (result.deleted === 0) {
+      return res.status(404).json({ msg: "Message not found" });
+    }
+    res.json({ msg: "Message deleted successfully", deleted: result.deleted });
+  } catch (e) {
+    res.status(e.status || 500).json({ msg: e.message });
+  }
 };
 
 // STATS

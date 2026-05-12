@@ -6,6 +6,11 @@ let currentLotId = null;
 let currentTotalSpots = null;
 let cancelMode = false;
 
+// Pagination state
+let currentPage = 1;
+const pageSize = 6;
+let filteredList = [];
+
 /**
  * Kiểm tra xem người dùng đã đăng nhập hay chưa dựa trên token trong localStorage
  * @returns {boolean} True nếu đã đăng nhập, ngược lại false
@@ -27,11 +32,100 @@ window.onload = async () => {
   try {
     const res = await fetch(`${API}/parking-lots`);
     baidoDangHienThi = await res.json();
-    renderParkingList(baidoDangHienThi);
+    filteredList = [...baidoDangHienThi]; // Initialize filtered list
+    applyPaginationAndRender(); // New unified render function
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectLotId = urlParams.get("lot_id");
+
+    if (preselectLotId) {
+      const lot = baidoDangHienThi.find((b) => b.id == preselectLotId);
+      if (lot) {
+        if (modal) modal.style.display = "none";
+        window.selectedLotPrice = lot.current_price || 10000;
+        showSpots(lot.id, lot.total_spots);
+      }
+    }
   } catch {
     alert("Không tải được dữ liệu bãi đỗ");
   }
 };
+
+/* ================= PAGINATION LOGIC ================= */
+function applyPaginationAndRender() {
+  const totalPages = Math.ceil(filteredList.length / pageSize);
+  if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+
+  const start = (currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageItems = filteredList.slice(start, end);
+
+  renderParkingList(pageItems);
+  renderPaginationControls(totalPages);
+}
+
+function renderPaginationControls(totalPages) {
+  const container = document.getElementById("pagination");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (totalPages <= 1) {
+    container.style.display = "none";
+    return;
+  }
+  container.style.display = "flex";
+
+  const createBtn = (label, page, isActive = false, isDisabled = false) => {
+    const btn = document.createElement("button");
+    btn.className = `page-btn ${isActive ? "active" : ""}`;
+    btn.disabled = isDisabled;
+    btn.innerHTML = label;
+    if (!isDisabled && !isActive) {
+      btn.onclick = () => {
+        currentPage = page;
+        applyPaginationAndRender();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+    }
+    return btn;
+  };
+
+  // Prev
+  container.appendChild(
+    createBtn(
+      '<i class="fas fa-chevron-left"></i>',
+      currentPage - 1,
+      false,
+      currentPage === 1,
+    ),
+  );
+
+  // Page Numbers
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= currentPage - 1 && i <= currentPage + 1)
+    ) {
+      container.appendChild(createBtn(i, i, i === currentPage));
+    } else if (i === currentPage - 2 || i === currentPage + 2) {
+      const dot = document.createElement("span");
+      dot.className = "page-dots";
+      dot.textContent = "...";
+      container.appendChild(dot);
+    }
+  }
+
+  // Next
+  container.appendChild(
+    createBtn(
+      '<i class="fas fa-chevron-right"></i>',
+      currentPage + 1,
+      false,
+      currentPage === totalPages,
+    ),
+  );
+}
 
 /* ================= MODAL VỊ TRÍ ================= */
 /**
@@ -47,13 +141,20 @@ function yeucautruycapvitri() {
  * Hiển thị danh sách các bãi đỗ xe lên giao diện người dùng
  * @param {Array} list Danh sách đối tượng bãi đỗ xe
  */
+let userCoords = null;
+
 function renderParkingList(list) {
   const container = document.getElementById("parkingList");
-  container.innerHTML = "";
-  container.style.display = "flex";
+  const pagination = document.getElementById("pagination");
 
+  // Reset view when showing list
+  container.style.display = "grid";
+  if (pagination) pagination.style.display = list.length > 0 ? "flex" : "none";
+
+  container.innerHTML = "";
   if (!list || list.length === 0) {
-    container.innerHTML = "<p>Không có bãi đỗ</p>";
+    container.innerHTML =
+      "<p style='grid-column: 1/-1; text-align: center; color: #64748b; padding: 40px;'>Không tìm thấy bãi đỗ xe nào phù hợp.</p>";
     return;
   }
 
@@ -61,16 +162,74 @@ function renderParkingList(list) {
     const card = document.createElement("div");
     card.className = "parking-card";
 
+    // Tính toán công suất
+    const total = lot.total_spots || 0;
+    const avail = lot.available_spots || 0;
+    const occupied = total - avail;
+    const percent = total > 0 ? Math.round((occupied / total) * 100) : 0;
+
+    // Màu sắc thanh tiến trình
+    let barColor = "green";
+    if (percent > 70) barColor = "orange";
+    if (percent > 90) barColor = "red";
+
+    // Badge trạng thái
+    const statusBadge =
+      avail > 0
+        ? `<span class="badge badge-available">Còn chỗ</span>`
+        : `<span class="badge badge-full">Hết chỗ</span>`;
+
+    // Tính khoảng cách động
+    let distanceText = "Đang xác định...";
+    if (userCoords && lot.lat && lot.lng) {
+      const d = tinhKhoangCach(
+        userCoords.lat,
+        userCoords.lng,
+        parseFloat(lot.lat),
+        parseFloat(lot.lng),
+      );
+      distanceText = `Cách bạn ${d.toFixed(1)}km`;
+    }
+
     card.innerHTML = `
-  <img src="http://localhost:5000${lot.image_url}" />
-  <p class="lot-name"><b>${lot.name}</b></p>
-  <p class="total-slot">Tổng chỗ: ${lot.total_spots}</p>
-  <p class="current-price" style="color: #ff6600; font-weight: bold;">Giá hiện tại: ${(lot.current_price || 10000).toLocaleString("vi-VN")} đ/h</p>
-`;
+      <div class="card-img-wrapper">
+        <img src="http://localhost:5000${lot.image_url}" alt="${lot.name}" onerror="this.src='https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400'">
+        <div class="card-overlay">
+          ${statusBadge}
+          <span class="badge" style="background: rgba(15, 23, 42, 0.8); color: white;">${percent}% Full</span>
+        </div>
+      </div>
+      
+      <div class="card-content">
+        <b class="lot-name">${lot.name}</b>
+        
+        <div class="lot-info">
+          <span><i class="fas fa-map-marker-alt"></i> ${distanceText}</span>
+          <span><i class="fas fa-car"></i> ${total} ô đỗ</span>
+        </div>
+
+        <div class="capacity-container">
+          <div class="capacity-label">
+            <span>Mức độ lấp đầy</span>
+            <span><b>${occupied}</b>/${total}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${barColor}" style="width: ${percent}%"></div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="price-tag">
+            <span class="price-label">Giá từ</span>
+            <span class="price-value">${(lot.current_price || 2000).toLocaleString("vi-VN")}đ<small style="font-size: 11px; color: #94a3b8;">/h</small></span>
+          </div>
+          <button class="btn-book">Đặt ngay <i class="fas fa-arrow-right" style="margin-left: 5px; font-size: 12px;"></i></button>
+        </div>
+      </div>
+    `;
 
     card.onclick = () => {
-      // Lưu giá hiện tại của bãi này để dùng khi tính tiền
-      window.selectedLotPrice = lot.current_price || 10000;
+      window.selectedLotPrice = lot.current_price || 2000;
       showSpots(lot.id, lot.total_spots);
     };
     container.appendChild(card);
@@ -95,11 +254,17 @@ function debounce(func, delay) {
  */
 function filterParking(value) {
   const keyword = value.toLowerCase().trim();
-  if (!keyword) return renderParkingList(baidoDangHienThi);
 
-  renderParkingList(
-    baidoDangHienThi.filter((b) => b.name.toLowerCase().includes(keyword)),
-  );
+  if (!keyword) {
+    filteredList = [...baidoDangHienThi];
+  } else {
+    filteredList = baidoDangHienThi.filter((b) =>
+      b.name.toLowerCase().includes(keyword),
+    );
+  }
+
+  currentPage = 1; // Reset to first page on search
+  applyPaginationAndRender();
 }
 
 // Chuẩn hóa thời gian
@@ -126,136 +291,108 @@ function parseLocalDateTime(sqlDateTime) {
  * @param {number} totalSpots Tổng số ô đỗ trong bãi
  */
 async function showSpots(parkingLotId, totalSpots) {
+  const hero = document.querySelector(".hero-section");
+  if (hero) hero.style.display = "none";
+
   document.getElementById("parkingList").style.display = "none";
-  document.getElementById("searchBar").style.display = "none";
-  document.getElementById("legend").style.display = "flex";
+  document.getElementById("pagination").style.display = "none";
   document.getElementById("parkingHeader").style.display = "block";
 
   const lot = baidoDangHienThi.find((b) => b.id === parkingLotId);
   document.getElementById("lotName").textContent = lot?.name || "";
 
-  // ===== FETCH STATUS TỪ BACKEND =====
-  const token = localStorage.getItem("sp_token");
-
-  const res = await fetch(`${API}/parking-lots/${parkingLotId}/spot-status`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  const data = await res.json();
-
-  /**
-   * map:
-   * spot_code -> { status, ticket }
-   */
-  const spotMap = {};
-  let freeCount = 0;
-  let pendingCount = 0;
-  let paidCount = 0;
-  let occupiedCount = 0;
-
-  data.forEach((s) => {
-    spotMap[s.spot_code] = {
-      status: s.spot_status,
-      adminStatus: s.admin_status,
-      isMine: s.is_mine === 1,
-    };
-  });
-
-  // ===== CLEAR MAP =====
-  const zoneA = document.getElementById("zoneA");
-  const zoneB = document.getElementById("zoneB");
-  zoneA.innerHTML = "";
-  zoneB.innerHTML = "";
-
-  const half = Math.ceil(totalSpots / 2);
-  currentLotId = parkingLotId;
-  currentTotalSpots = totalSpots;
-  let tempOutCount = 0;
-
-  // ===== RENDER SPOTS =====
-  for (let i = 1; i <= totalSpots; i++) {
-    const spot = document.createElement("div");
-    spot.className = "spot";
-
-    const info = spotMap[i] || {
-      status: "FREE",
-      adminStatus: "NORMAL",
-      isMine: false,
-    };
-    const status = info.status;
-    const adminStatus = info.adminStatus;
-
-    let iconHtml = "";
-    if (adminStatus === "LOCKED" || adminStatus === "MAINTENANCE") {
-      spot.classList.add("locked");
-      iconHtml =
-        adminStatus === "LOCKED"
-          ? '<i class="fas fa-lock"></i>'
-          : '<i class="fas fa-wrench"></i>';
-      // Disable click explicitly
-      spot.style.cursor = "not-allowed";
-      spot.onclick = null;
-    } else if (status === "OCCUPIED") {
-      spot.classList.add("parking");
-      iconHtml = '<i class="fas fa-car"></i>';
-      occupiedCount++;
-    } else if (status === "TEMP_OUT") {
-      spot.classList.add("temp-out");
-      iconHtml = '<i class="fas fa-running"></i>';
-      tempOutCount++;
-      if (info.isMine) {
-        spot.style.cursor = "pointer";
-        spot.onclick = () => {
-          localStorage.setItem("parking_lot_id", parkingLotId);
-          localStorage.setItem("spot_number", i);
-          window.location.href = "/frontend/checkin/index.html";
-        };
-      }
-    } else if (status === "PAID") {
-      spot.classList.add("paid");
-      iconHtml = '<i class="fas fa-check-circle"></i>';
-      paidCount++;
-      if (cancelMode) {
-        spot.classList.add("cancelable");
-        spot.onclick = () => confirmCancel(parkingLotId, i, "PAID");
-      }
-    } else if (status === "PENDING") {
-      spot.classList.add("pending");
-      iconHtml = '<i class="fas fa-clock"></i>';
-      pendingCount++;
-      if (cancelMode) {
-        spot.classList.add("cancelable");
-        spot.onclick = () => confirmCancel(parkingLotId, i, "PENDING");
-      } else if (info.isMine) {
-        spot.style.cursor = "pointer";
-        spot.onclick = () => {
-          localStorage.setItem("parking_lot_id", parkingLotId);
-          localStorage.setItem("spot_number", i);
-          document.getElementById("paymentModal").style.display = "flex";
-        };
-      }
-    } else {
-      spot.classList.add("free");
-      iconHtml = '<i class="fas fa-plus"></i>';
-      freeCount++;
-      spot.onclick = () => {
-        if (!isLoggedIn()) {
-          alert("Vui lòng đăng nhập để đặt chỗ");
-          window.location.href = "/frontend/login/dangnhap.html";
-          return;
-        }
-        openReserveForm(parkingLotId, i);
-      };
-    }
-
-    spot.innerHTML = `${iconHtml}<span class="spot-number">${i}</span>`;
-    (i <= half ? zoneA : zoneB).appendChild(spot);
+  const legendDiv = document.getElementById("legend");
+  if (legendDiv) {
+    legendDiv.style.display = "flex";
+    legendDiv.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;padding:60px 0;gap:12px;color:#94a3b8;font-size:15px;width:100%;">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:22px;color:#3b82f6;"></i>
+        Đang tải sơ đồ bãi đỗ…
+      </div>
+    `;
   }
 
-  // ===== HEADER =====
-  document.getElementById("tempOutSpots").textContent = tempOutCount;
+  const token = localStorage.getItem("sp_token");
+  const [resStatus, resZones] = await Promise.all([
+    fetch(`${API}/parking-lots/${parkingLotId}/spot-status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    fetch(`${API}/parking-lots/${parkingLotId}/zones-pricing`),
+  ]);
 
+  const data = resStatus.ok ? await resStatus.json() : [];
+  if (!Array.isArray(data)) {
+    alert("Không tải được trạng thái ô đỗ");
+    return;
+  }
+  window.currentLotZones = resZones.ok ? await resZones.json() : [];
+
+  let freeCount = 0, pendingCount = 0, paidCount = 0, occupiedCount = 0, tempOutCount = 0;
+
+  const validData = data.slice(0, totalSpots).sort((a, b) => {
+    return String(a.spot_code).localeCompare(String(b.spot_code), undefined, { numeric: true });
+  });
+
+  legendDiv.innerHTML = "";
+  const ZONE_TYPE_LABEL = { COVERED: "Có mái che", OUTDOOR: "Ngoài trời", VIP: "VIP", INDOOR: "Trong nhà" };
+  const ZONE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#ef4444"];
+
+  if (window.currentLotZones && window.currentLotZones.length > 0) {
+    window.currentLotZones.forEach((zone, idx) => {
+      const color = ZONE_COLORS[idx % ZONE_COLORS.length];
+      const typeLabel = ZONE_TYPE_LABEL[zone.zone_type] || zone.zone_type || "";
+      const isBicycleZone = (zone.supported_vehicles || "").toUpperCase().includes("BICYCLE") && 
+                           !(zone.supported_vehicles || "").toUpperCase().includes("CAR");
+
+      const section = document.createElement("div");
+      section.className = "zone";
+      section.innerHTML = `
+        <div class="zone-header-row">
+          <h3 style="border-left-color:${color}">${zone.name} <span>(${typeLabel})</span></h3>
+        </div>
+        <div class="zone-body-layout ${isBicycleZone ? 'single-layout' : 'split-layout'}">
+          ${isBicycleZone ? `
+            <div class="grid-container full-width">
+              <div class="sub-header"><i class="fas fa-bicycle"></i> Khu vực Xe đạp</div>
+              <div class="spot-grid" id="grid-full-${zone.id}"></div>
+            </div>
+          ` : `
+            <div class="grid-container car-width">
+              <div class="sub-header"><i class="fas fa-car"></i> Khu vực Ô tô (20%)</div>
+              <div class="spot-grid" id="grid-car-${zone.id}"></div>
+            </div>
+            <div class="grid-container bike-width">
+              <div class="sub-header"><i class="fas fa-motorcycle"></i> Khu vực Xe máy (80%)</div>
+              <div class="spot-grid" id="grid-bike-${zone.id}"></div>
+            </div>
+          `}
+        </div>
+      `;
+      legendDiv.appendChild(section);
+      
+      const zoneSpots = validData.filter(s => s.zone_id === zone.id);
+      const carCount = Math.floor(zoneSpots.length * 0.2);
+      const carCodes = zoneSpots.slice(0, carCount).map(s => s.spot_code);
+
+      const gridFull = section.querySelector(`#grid-full-${zone.id}`);
+      const gridCar = section.querySelector(`#grid-car-${zone.id}`);
+      const gridBike = section.querySelector(`#grid-bike-${zone.id}`);
+
+      zoneSpots.forEach(s => {
+        const isCar = carCodes.includes(s.spot_code);
+        let target = isBicycleZone ? gridFull : (isCar ? gridCar : gridBike);
+        if (target) renderSingleSpot(target, s, parkingLotId);
+        
+        if (s.spot_status === 'OCCUPIED') occupiedCount++;
+        else if (s.spot_status === 'TEMP_OUT') tempOutCount++;
+        else if (s.spot_status === 'PAID') paidCount++;
+        else if (s.spot_status === 'PENDING') pendingCount++;
+        else freeCount++;
+      });
+    });
+  }
+
+  document.getElementById("tempOutSpots").textContent = tempOutCount;
   document.getElementById("totalSpots").textContent = totalSpots;
   document.getElementById("freeSpots").textContent = freeCount;
   document.getElementById("pendingSpots").textContent = pendingCount;
@@ -263,15 +400,109 @@ async function showSpots(parkingLotId, totalSpots) {
   document.getElementById("occupiedSpots").textContent = occupiedCount;
 }
 
+function renderSingleSpot(container, s, parkingLotId) {
+  const status = s.spot_status;
+  const adminStatus = s.admin_status;
+  const isMine = s.is_mine === 1;
+  const spotCode = s.spot_code;
+  const zoneName = s.zone_name;
+
+  const ICON = {
+    LOCKED: '<i class="fas fa-lock"></i>', MAINTENANCE: '<i class="fas fa-wrench"></i>',
+    OCCUPIED: '<i class="fas fa-car"></i>', TEMP_OUT: '<i class="fas fa-person-running"></i>',
+    PAID: '<i class="fas fa-check-circle"></i>', PENDING: '<i class="fas fa-clock"></i>',
+    FREE: '<i class="fas fa-square-parking"></i>',
+  };
+
+  const spot = document.createElement("div");
+  spot.className = "spot";
+
+  if (adminStatus === "LOCKED" || adminStatus === "MAINTENANCE") {
+    spot.classList.add("locked");
+  } else {
+    switch (status) {
+      case "OCCUPIED": spot.classList.add("parking"); break;
+      case "TEMP_OUT":
+        spot.classList.add("temp-out");
+        if (isMine) spot.onclick = () => {
+          localStorage.setItem("parking_lot_id", parkingLotId);
+          localStorage.setItem("spot_number", spotCode);
+          window.location.href = "/frontend/checkin/index.html";
+        };
+        break;
+      case "PAID":
+        spot.classList.add("paid");
+        if (cancelMode) spot.onclick = () => confirmCancel(parkingLotId, spotCode, "PAID");
+        break;
+      case "PENDING":
+        spot.classList.add("pending");
+        if (cancelMode) spot.onclick = () => confirmCancel(parkingLotId, spotCode, "PENDING");
+        else if (isMine) spot.onclick = () => {
+          localStorage.setItem("parking_lot_id", parkingLotId);
+          localStorage.setItem("spot_number", spotCode);
+          document.getElementById("paymentModal").style.display = "flex";
+        };
+        break;
+      default:
+        spot.classList.add("free");
+        spot.onclick = () => {
+          if (!isLoggedIn()) {
+            alert("Vui lòng đăng nhập để đặt chỗ");
+            window.location.href = "/frontend/login/dangnhap.html";
+            return;
+          }
+          openReserveForm(parkingLotId, spotCode, s.zone_id);
+        };
+    }
+  }
+
+  const iconKey = adminStatus === "LOCKED" ? "LOCKED" : adminStatus === "MAINTENANCE" ? "MAINTENANCE" : status || "FREE";
+  const displayCode = zoneName ? `${zoneName}-${spotCode}` : String(spotCode);
+  spot.innerHTML = `${ICON[iconKey] || ICON.FREE}<span class="spot-number">${displayCode}</span>`;
+  spot.title = `Ô ${displayCode} — ${status === "FREE" ? "Trống" : status}`;
+  container.appendChild(spot);
+}
+
 // ==================
 /**
  * Mở form nhập thông tin để khách hàng thực hiện đặt chỗ
  * @param {number} lotId ID bãi đỗ
  * @param {number} spotNumber Số hiệu ô đỗ
+ * @param {number} zoneId ID của zone
  */
-function openReserveForm(lotId, spotNumber) {
+function openReserveForm(lotId, spotNumber, zoneId = null) {
   selectedLotId = lotId;
   selectedSpotNumber = spotNumber;
+  window.selectedZoneId = zoneId;
+
+  // Cập nhật danh sách loại xe dựa trên zone
+  const vehicleSelect = document.getElementById("vehicleTypeInput");
+  vehicleSelect.innerHTML = "";
+
+  if (window.currentLotZones && zoneId) {
+    const zone = window.currentLotZones.find((z) => z.id === zoneId);
+    if (zone && zone.supported_vehicles) {
+      const types = zone.supported_vehicles.split(",");
+      types.forEach((t) => {
+        const option = document.createElement("option");
+        option.value = t.trim();
+        option.textContent =
+          t.trim() === "CAR"
+            ? "Ô tô"
+            : t.trim() === "MOTORBIKE"
+              ? "Xe máy"
+              : "Xe đạp";
+        vehicleSelect.appendChild(option);
+      });
+    }
+  } else {
+    // Fallback
+    vehicleSelect.innerHTML = `
+      <option value="CAR">Ô tô</option>
+      <option value="MOTORBIKE">Xe máy</option>
+      <option value="BICYCLE">Xe đạp</option>
+    `;
+  }
 
   // reset form
   document.getElementById("plateInput").value = "";
@@ -279,8 +510,20 @@ function openReserveForm(lotId, spotNumber) {
   document.getElementById("startTimeInput").value = "";
   document.getElementById("endTimeInput").value = "";
   document.getElementById("totalPrice").textContent = "0";
+  togglePlateInput();
 
   document.getElementById("reserveFormModal").style.display = "flex";
+}
+
+function togglePlateInput() {
+  const type = document.getElementById("vehicleTypeInput").value;
+  const plateGroup = document.getElementById("plateInputGroup");
+  if (type === "BICYCLE") {
+    plateGroup.style.display = "none";
+  } else {
+    plateGroup.style.display = "block";
+  }
+  calculatePrice();
 }
 
 /**
@@ -314,64 +557,77 @@ function continuePayment(parkingLotId, spotNumber) {
  * Gửi thông tin đặt chỗ lên máy chủ sau khi người dùng xác nhận form
  */
 async function confirmReserveInfo() {
-  if (!isLoggedIn()) {
-    alert(" Vui lòng đăng nhập để đặt chỗ");
-    window.location.href = "/frontend/login/dangnhap.html";
-    return;
+  try {
+    if (!isLoggedIn()) {
+      alert(" Vui lòng đăng nhập để đặt chỗ");
+      window.location.href = "/frontend/login/dangnhap.html";
+      return;
+    }
+
+    const token = localStorage.getItem("sp_token");
+    const vehicleType = document.getElementById("vehicleTypeInput").value;
+    const license_plate = document.getElementById("plateInput").value.trim();
+    const phone = document.getElementById("phoneInput").value.trim();
+    const startTime = document.getElementById("startTimeInput").value;
+    const endTime = document.getElementById("endTimeInput").value;
+
+    if (vehicleType !== "BICYCLE" && !license_plate) {
+      alert("Vui lòng nhập biển số xe");
+      return;
+    }
+
+    if (!phone || !startTime || !endTime) {
+      alert("Vui lòng nhập đầy đủ thông tin");
+      return;
+    }
+
+    const hours = Math.ceil(
+      (new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60),
+    );
+
+    localStorage.setItem("parking_hours", hours);
+
+    const res = await fetch(`${API}/reservations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        parking_lot_id: selectedLotId,
+        spot_number: selectedSpotNumber,
+        start_time: startTime,
+        end_time: endTime,
+        hours,
+        license_plate:
+          vehicleType === "BICYCLE" ? "XE_DAP_NO_PLATE" : license_plate,
+        vehicle_type: vehicleType,
+        zone_id: window.selectedZoneId,
+      }),
+    });
+
+    if (res.status === 401) {
+      alert(" Bạn cần đăng nhập trước khi đặt chỗ");
+      localStorage.removeItem("sp_token");
+      window.location.href = "/frontend/login/dangnhap.html";
+      return;
+    }
+
+    const resultData = await res.json();
+
+    if (!res.ok) {
+      alert(resultData.msg || "Đặt chỗ thất bại");
+      return;
+    }
+
+    localStorage.setItem("parking_ticket", resultData.ticket);
+
+    closeReserveForm();
+    document.getElementById("paymentModal").style.display = "flex";
+  } catch (error) {
+    console.error("Lỗi xác nhận đặt chỗ:", error);
+    alert("Có lỗi xảy ra: " + error.message);
   }
-
-  const token = localStorage.getItem("sp_token");
-
-  const license_plate = document.getElementById("plateInput").value.trim();
-  const phone = document.getElementById("phoneInput").value.trim();
-  const startTime = document.getElementById("startTimeInput").value;
-  const endTime = document.getElementById("endTimeInput").value;
-
-  if (!license_plate || !phone || !startTime || !endTime) {
-    alert("Vui lòng nhập đầy đủ thông tin");
-    return;
-  }
-
-  const hours = Math.ceil(
-    (new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60),
-  );
-
-  localStorage.setItem("parking_hours", hours);
-
-  const res = await fetch(`${API}/reservations`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      parking_lot_id: selectedLotId,
-      spot_number: selectedSpotNumber,
-      start_time: startTime,
-      end_time: endTime,
-      hours,
-      license_plate,
-    }),
-  });
-
-  if (res.status === 401) {
-    alert(" Bạn cần đăng nhập trước khi đặt chỗ");
-    localStorage.removeItem("sp_token");
-    window.location.href = "/frontend/login/dangnhap.html";
-    return;
-  }
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.msg || "Đặt chỗ thất bại");
-    return;
-  }
-
-  localStorage.setItem("parking_ticket", data.ticket);
-
-  closeReserveForm();
-  document.getElementById("paymentModal").style.display = "flex";
 }
 
 /* ================= THANH TOÁN ================= */
@@ -407,6 +663,7 @@ function xuLyQuyenViTri(granted) {
     (position) => {
       const userLat = position.coords.latitude;
       const userLng = position.coords.longitude;
+      userCoords = { lat: userLat, lng: userLng }; // Cập nhật biến toàn cục
 
       let nearestLot = null;
       let minDistance = Infinity;
@@ -468,7 +725,7 @@ function tinhKhoangCach(lat1, lon1, lat2, lon2) {
 }
 module.exports = { tinhKhoangCach };
 
-/* ===== GIÁ THEO GIỜ (ĐÃ CHUYỂN SANG DÙNG GIÁ ĐỘNG TỪ BÃI ĐỖ) ===== */
+/* ===== GIÁ THEO GIỜ (ĐÃ CHUYỂN SANG DÙNG GIÁ ĐỘNG TỪ BÃI ĐỖ VÀ ZONE) ===== */
 
 /**
  * Tự động tính toán tổng tiền dựa trên giờ vào và giờ ra người dùng chọn
@@ -477,6 +734,7 @@ function calculatePrice() {
   const startInput = document.getElementById("startTimeInput");
   const endInput = document.getElementById("endTimeInput");
   const priceEl = document.getElementById("totalPrice");
+  const vehicleType = document.getElementById("vehicleTypeInput").value;
 
   if (!startInput.value || !endInput.value) {
     priceEl.textContent = "0";
@@ -494,7 +752,20 @@ function calculatePrice() {
   const diffMs = end - start;
   const hours = Math.ceil(diffMs / (1000 * 60 * 60));
 
-  const currentRate = window.selectedLotPrice || 10000;
+  let currentRate = window.selectedLotPrice || 10000;
+
+  if (window.currentLotZones && window.selectedZoneId) {
+    const zone = window.currentLotZones.find(
+      (z) => z.id === window.selectedZoneId,
+    );
+    if (zone && zone.pricings) {
+      const pricing = zone.pricings.find((p) => p.vehicle_type === vehicleType);
+      if (pricing) {
+        currentRate = pricing.hourly_rate;
+      }
+    }
+  }
+
   const total = hours * currentRate;
   priceEl.textContent = total.toLocaleString("vi-VN");
 

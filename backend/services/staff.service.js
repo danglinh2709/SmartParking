@@ -6,6 +6,10 @@ exports.getManagedParkingLots = async (userId) => {
   return await staffModel.getManagedParkingLots(userId);
 };
 
+exports.getStaffInfo = async (userId) => {
+  return await staffModel.getStaffInfo(userId);
+};
+
 exports.verifyAccessCode = async (userId, { parking_lot_id, access_code }) => {
   if (!parking_lot_id || !access_code) return false;
   return await staffModel.verifyAccessCode(userId, parking_lot_id, access_code);

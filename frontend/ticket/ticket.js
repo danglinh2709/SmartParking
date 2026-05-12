@@ -42,11 +42,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("parkingName").textContent = data.parking_name;
     document.getElementById("licensePlate").textContent =
       data.license_plate || "—";
-    document.getElementById("spotNumber").textContent = data.spot_number;
+
+    // Map vehicle_type
+    const typeLabel =
+      data.vehicle_type === "CAR"
+        ? "Ô tô"
+        : data.vehicle_type === "MOTORBIKE"
+          ? "Xe máy"
+          : "Xe đạp";
+    document.getElementById("vehicleType").textContent = typeLabel || "—";
+
+    // Map spotNumber with zone_name
+    document.getElementById("spotNumber").textContent = data.zone_name
+      ? `${data.zone_name}-${data.spot_number}`
+      : data.spot_number;
+
     document.getElementById("startTime").textContent = formatTime(
-      data.start_time
+      data.start_time,
     );
     document.getElementById("endTime").textContent = formatTime(data.end_time);
+
+    document.getElementById("amountPaid").textContent =
+      data.original_paid_amount
+        ? data.original_paid_amount.toLocaleString("vi-VN") + " VNĐ"
+        : "0 VNĐ";
 
     /* ====== ĐÁNH DẤU ĐÃ LOAD XONG ====== */
     ticketLoaded = true;
@@ -56,16 +75,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 Mã vé: ${data.ticket}
 Bãi xe: ${data.parking_name}
 Biển số: ${data.license_plate || "—"}
-Vị trí: ${data.spot_number}
+Loại xe: ${typeLabel}
+Vị trí: ${data.zone_name ? data.zone_name + "-" : ""}${data.spot_number}
 Vào: ${formatTime(data.start_time)}
 Hết hạn: ${formatTime(data.end_time)}
 `;
 
-    document.getElementById(
-      "qrTicket"
-    ).src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-      qrText
-    )}`;
+    document.getElementById("qrTicket").src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+        qrText,
+      )}`;
+
+    /* ====== AUTO REDIRECT BACK TO PARKING LOT ====== */
+    const lotId = localStorage.getItem("parking_lot_id");
+    if (lotId) {
+      document.getElementById("redirectMessage").style.display = "block";
+      let timeleft = 30;
+      const redirectTimer = setInterval(() => {
+        timeleft -= 1;
+        document.getElementById("redirectTimer").textContent = timeleft;
+        if (timeleft <= 0) {
+          clearInterval(redirectTimer);
+          window.location.href = `/frontend/pay/pay.html?lot_id=${lotId}`;
+        }
+      }, 1000);
+    }
   } catch (err) {
     console.error(err);
     alert(" Không kết nối được server");
