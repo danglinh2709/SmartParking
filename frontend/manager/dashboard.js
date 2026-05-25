@@ -306,10 +306,13 @@ function generateInsights(data) {
 }
 
 function renderSparklines() {
+  charts.sparklines.forEach(chart => chart.destroy());
+  charts.sparklines = [];
+
   const ids = ['revenueSparkline', 'vehiclesSparkline', 'occupancySparkline', 'lotsSparkline'];
   ids.forEach(id => {
     const ctx = document.getElementById(id).getContext("2d");
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: [1,2,3,4,5,6,7],
@@ -329,13 +332,32 @@ function renderSparklines() {
         scales: { x: { display: false }, y: { display: false } }
       }
     });
+    charts.sparklines.push(chart);
   });
 }
 
 document.addEventListener("DOMContentLoaded", initDashboard);
 
+
 function logout() {
   localStorage.removeItem("sp_token");
   localStorage.removeItem("sp_role");
   location.href = "/frontend/login/dangnhap.html";
+}
+
+/* ========= SOCKET REAL-TIME ========= */
+if (typeof io !== "undefined") {
+  const socket = io("http://localhost:5000");
+  let _dashTimer = null;
+
+  function scheduleDashboardRefresh() {
+    clearTimeout(_dashTimer);
+    _dashTimer = setTimeout(() => {
+      fetchData();
+    }, 3000);
+  }
+
+  socket.on("PARKING_UPDATED", scheduleDashboardRefresh);
+  socket.on("spot-updated", scheduleDashboardRefresh);
+  socket.on("spot-freed", scheduleDashboardRefresh);
 }

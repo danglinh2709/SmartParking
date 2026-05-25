@@ -11,6 +11,22 @@ exports.getAll = async () => {
       pl.lat,
       pl.lng,
       pl.IsActive,
+      COALESCE((
+        SELECT STRING_AGG(u.FullName, ', ')
+        FROM ParkingLotStaff pls
+        JOIN Users u ON u.UserID = pls.user_id
+        WHERE pls.parking_lot_id = pl.id
+          AND pls.is_active = 1
+          AND u.IsActive = 1
+      ), '') AS staff_names,
+      (
+        SELECT COUNT(DISTINCT pls.user_id)
+        FROM ParkingLotStaff pls
+        JOIN Users u ON u.UserID = pls.user_id
+        WHERE pls.parking_lot_id = pl.id
+          AND pls.is_active = 1
+          AND u.IsActive = 1
+      ) AS staff_count,
       -- Lấy tổng số ô thực tế từ bảng ParkingSpot, nếu không có thì lấy từ ParkingLot.total_spots
       COALESCE((SELECT COUNT(*) FROM ParkingSpot ps WHERE ps.parking_lot_id = pl.id), pl.total_spots) as total_spots,
       -- Đếm số ô đỗ trống thực tế
@@ -18,8 +34,8 @@ exports.getAll = async () => {
         SELECT COUNT(*) 
         FROM ParkingSpot ps
         WHERE ps.parking_lot_id = pl.id
-          AND ps.admin_status = 'NORMAL'
-          AND ps.is_occupied = 0
+          AND ISNULL(ps.admin_status, 'NORMAL') = 'NORMAL'
+          AND ISNULL(ps.is_occupied, 0) = 0
           AND ps.reservation_id IS NULL
           AND NOT EXISTS (
             SELECT 1 FROM ParkingSession s WHERE s.parking_lot_id = ps.parking_lot_id AND s.spot_number = ps.spot_code AND s.status = 'IN'

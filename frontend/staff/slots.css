@@ -46,16 +46,12 @@
 body {
   background: var(--bg-deep);
   background-image:
-    radial-gradient(
-      circle at 50% 0%,
+    radial-gradient(circle at 50% 0%,
       rgba(59, 130, 246, 0.08) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 0% 100%,
+      transparent 50%),
+    radial-gradient(circle at 0% 100%,
       rgba(16, 185, 129, 0.05) 0%,
-      transparent 50%
-    );
+      transparent 50%);
   color: var(--text-primary);
   line-height: 1.4;
   overflow-x: hidden;
@@ -68,13 +64,16 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-deep);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border-bright);
   border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
@@ -151,10 +150,12 @@ body {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
   }
+
   70% {
     transform: scale(1);
     box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
   }
+
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
@@ -300,18 +301,22 @@ body {
   background: rgba(59, 130, 246, 0.1);
   color: var(--primary);
 }
+
 .free .stat-icon {
   background: rgba(16, 185, 129, 0.1);
   color: var(--success);
 }
+
 .occupied .stat-icon {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger);
 }
+
 .reserved .stat-icon {
   background: rgba(245, 158, 11, 0.1);
   color: var(--warning);
 }
+
 .maintenance .stat-icon {
   background: rgba(100, 116, 139, 0.1);
   color: var(--maintenance);
@@ -344,6 +349,7 @@ body {
 .trend.up {
   color: var(--success);
 }
+
 .trend.down {
   color: var(--danger);
 }
@@ -537,7 +543,7 @@ select:hover {
 }
 
 .grid-car {
-  flex: 0 0 25%;
+  flex: 0 0 30%;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -563,9 +569,17 @@ select:hover {
   letter-spacing: 0.5px;
 }
 
-.grid-car .grid-header i { color: var(--primary); }
-.grid-bike .grid-header i { color: var(--success); }
-.grid-full .grid-header i { color: var(--warning); }
+.grid-car .grid-header i {
+  color: var(--primary);
+}
+
+.grid-bike .grid-header i {
+  color: var(--success);
+}
+
+.grid-full .grid-header i {
+  color: var(--warning);
+}
 
 .slot-grid-container {
   display: grid;
@@ -578,6 +592,7 @@ select:hover {
   .zone-body.split-grid {
     flex-direction: column;
   }
+
   .grid-car {
     flex: none;
     width: 100%;
@@ -615,6 +630,7 @@ select:hover {
 .slot.free::before {
   background: var(--success);
 }
+
 .slot.free:hover {
   box-shadow: var(--glow-success);
   border-color: var(--success);
@@ -623,15 +639,26 @@ select:hover {
 .slot.occupied::before {
   background: var(--danger);
 }
+
 .slot.occupied:hover {
   box-shadow: var(--glow-danger);
   border-color: var(--danger);
+}
+
+.slot.temp-out::before {
+  background: #f59e0b;
+}
+
+.slot.temp-out:hover {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+  border-color: #f59e0b;
 }
 
 .slot.paid::before,
 .slot.pending::before {
   background: var(--warning);
 }
+
 .slot.paid:hover,
 .slot.pending:hover {
   box-shadow: var(--glow-warning);
@@ -665,13 +692,20 @@ select:hover {
 .free .slot-icon {
   color: var(--success);
 }
+
 .occupied .slot-icon {
   color: var(--danger);
 }
+
+.temp-out .slot-icon {
+  color: #f59e0b;
+}
+
 .paid .slot-icon,
 .pending .slot-icon {
   color: var(--warning);
 }
+
 .maintenance .slot-icon {
   color: var(--maintenance);
 }
@@ -832,6 +866,7 @@ select:hover {
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -900,11 +935,13 @@ select:hover {
   background: var(--primary);
   color: #fff;
 }
+
 .btn-ghost {
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
   border: 1px solid var(--border);
 }
+
 .btn-danger {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger);
@@ -938,9 +975,11 @@ select:hover {
 .toast.show {
   transform: translateX(0);
 }
+
 .toast.success {
   border-left: 4px solid var(--success);
 }
+
 .toast.error {
   border-left: 4px solid var(--danger);
 }

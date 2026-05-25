@@ -5,15 +5,30 @@ exports.getActiveLots = async () => {
   const pool = await poolPromise;
   const res = await pool.request().query(`
     SELECT
-      id,
-      name,
-      total_spots,
-      available_spots,
-      image_url,
-      lat,
-      lng
-    FROM ParkingLot
-    WHERE IsActive = 1
+      pl.id,
+      pl.name,
+      COALESCE((SELECT COUNT(*) FROM ParkingSpot ps WHERE ps.parking_lot_id = pl.id), pl.total_spots) AS total_spots,
+      (
+        SELECT COUNT(*)
+        FROM ParkingSpot ps
+        WHERE ps.parking_lot_id = pl.id
+          AND ISNULL(ps.admin_status, 'NORMAL') = 'NORMAL'
+          AND ISNULL(ps.is_occupied, 0) = 0
+          AND ps.reservation_id IS NULL
+          AND NOT EXISTS (
+            SELECT 1
+            FROM ParkingSession s
+            WHERE s.parking_lot_id = ps.parking_lot_id
+              AND s.spot_number = ps.spot_code
+              AND s.status = 'IN'
+          )
+      ) AS available_spots,
+      pl.image_url,
+      pl.lat,
+      pl.lng
+    FROM ParkingLot pl
+    WHERE pl.IsActive = 1
+    ORDER BY pl.name
   `);
 
   const lots = res.recordset.map((lot) => ({
@@ -28,9 +43,30 @@ exports.getById = async (id) => {
   try {
     const pool = await poolPromise;
     const res = await pool.request().input("id", id).query(`
-      SELECT id, name, total_spots, available_spots, image_url, lat, lng
-      FROM ParkingLot
-      WHERE id = @id AND IsActive = 1
+      SELECT
+        pl.id,
+        pl.name,
+        COALESCE((SELECT COUNT(*) FROM ParkingSpot ps WHERE ps.parking_lot_id = pl.id), pl.total_spots) AS total_spots,
+        (
+          SELECT COUNT(*)
+          FROM ParkingSpot ps
+          WHERE ps.parking_lot_id = pl.id
+            AND ISNULL(ps.admin_status, 'NORMAL') = 'NORMAL'
+            AND ISNULL(ps.is_occupied, 0) = 0
+            AND ps.reservation_id IS NULL
+            AND NOT EXISTS (
+              SELECT 1
+              FROM ParkingSession s
+              WHERE s.parking_lot_id = ps.parking_lot_id
+                AND s.spot_number = ps.spot_code
+                AND s.status = 'IN'
+            )
+        ) AS available_spots,
+        pl.image_url,
+        pl.lat,
+        pl.lng
+      FROM ParkingLot pl
+      WHERE pl.id = @id AND pl.IsActive = 1
     `);
 
     if (!res.recordset.length) {

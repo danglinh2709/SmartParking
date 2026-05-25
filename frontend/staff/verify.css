@@ -922,10 +922,22 @@ video {
   border-radius: 12px;
   border: 1px solid rgba(58, 160, 255, 0.2);
   background: rgba(6, 12, 22, 0.92);
-  color: var(--text);
+  color: var(--text-primary);
   display: none;
   z-index: 20;
   font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+
+#toast.success {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(5, 46, 35, 0.96);
+}
+
+#toast.error {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(69, 10, 10, 0.96);
 }
 
 /* SCANNING EFFECTS */

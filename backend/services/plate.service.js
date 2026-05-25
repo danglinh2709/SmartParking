@@ -1,32 +1,34 @@
 const axios = require("axios");
 
 exports.recognizePlate = async (base64) => {
-  try {
-    const res = await axios.post(
-      "http://127.0.0.1:6000/ocr",
-      { image: base64 },
-      { timeout: 30000 },
-    );
+    try {
+        const ocrUrl = process.env.OCR_SERVICE_URL || "http://127.0.0.1:6000/ocr";
+        const res = await axios.post(
+            "http://127.0.0.1:6000/ocr",
+            ocrUrl,
+            { image: base64 },
+            { timeout: 30000 },
+        );
 
-    const data = res.data || {};
+        const data = res.data || {};
 
-    return {
-      valid: !!data.plate,
-      plate: data.plate || "",
-      top: data.top || "",
-      bottom: data.bottom || "",
-      confidence: data.confidence || 0,
-    };
-  } catch (err) {
-    console.error("OCR Flask error:", err.message);
-    return {
-      valid: false,
-      plate: "",
-      top: "",
-      bottom: "",
-      confidence: 0,
-    };
-  }
+        return {
+            valid: !!data.plate,
+            plate: data.plate || "",
+            top: data.top || "",
+            bottom: data.bottom || "",
+            confidence: data.confidence || 0,
+        };
+    } catch (err) {
+        console.error("OCR Flask error:", err.message);
+        return {
+            valid: false,
+            plate: "",
+            top: "",
+            bottom: "",
+            confidence: 0,
+        };
+    }
 };
 
 // dealine:  option charater recoginition

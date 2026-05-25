@@ -55,6 +55,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ctxFront = canvasFront.getContext("2d");
   const canvasBack = document.getElementById("canvasBack");
   const ctxBack = canvasBack.getContext("2d");
+  let qrStream = null;
+  let frontStream = null;
+  let backStream = null;
 
   parkingNameEl.textContent = lotName ? `Bai: ${lotName}` : "Bai: --";
   userRole.textContent = localStorage.getItem("sp_role") || "Staff Operator";
@@ -75,14 +78,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   tickClock();
   setInterval(tickClock, 1000);
 
-  function toast(message) {
+  function toast(message, tone = "info", duration = 3200) {
     const el = document.getElementById("toast");
     el.textContent = message;
+    el.className = tone;
     el.style.display = "block";
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => {
       el.style.display = "none";
-    }, 2800);
+      el.className = "";
+    }, duration);
   }
 
   function addLog(message) {
@@ -122,6 +127,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     frame.classList.remove("is-loading");
     cameraStatusLabel.textContent = label || "Sensors online";
     feedHealth.textContent = "Live stream active";
+  }
+
+  function stopStream(stream) {
+    if (!stream) return;
+    stream.getTracks().forEach((track) => track.stop());
+  }
+
+  function stopQRCamera() {
+    stopStream(qrStream);
+    qrStream = null;
+    camQR.srcObject = null;
+  }
+
+  function stopPlateCameras() {
+    stopStream(frontStream);
+    if (backStream && backStream !== frontStream) stopStream(backStream);
+    frontStream = null;
+    backStream = null;
+    camFront.srcObject = null;
+    camBack.srcObject = null;
+  }
+
+  function waitForVideoFrame(video, timeoutMs = 2500) {
+    if (video.videoWidth > 0 && video.readyState >= 2) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      const started = Date.now();
+      const timer = setInterval(() => {
+        if (video.videoWidth > 0 && video.readyState >= 2) {
+          clearInterval(timer);
+          resolve();
+          return;
+        }
+
+        if (Date.now() - started > timeoutMs) {
+          clearInterval(timer);
+          reject(new Error("Camera chua san sang"));
+        }
+      }, 80);
+    });
   }
 
   function typeLabel(value) {
@@ -229,16 +276,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   attachReadyListener(camBack, backCameraFrame, "Primary feed online");
 
   async function openQRCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
+    stopPlateCameras();
+    qrStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
       audio: false,
     });
-    camQR.srcObject = stream;
+    camQR.srcObject = qrStream;
+    await waitForVideoFrame(camQR);
     setSystemStatus("QR stream connected. Vision pipeline live.", "ready");
   }
 
   async function openPlateCameras() {
     try {
+      stopQRCamera();
       const devices = await navigator.mediaDevices.enumerateDevices();
       const cams = devices.filter((device) => device.kind === "videoinput");
 
@@ -250,17 +300,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Cam 2 (Back OCR): Ưu tiên cams[2] nếu có > 2 cam, nếu không dùng cams[1] hoặc cam duy nhất.
       const backCam = cams[2] || cams[1] || cams[0];
 
-      camFront.srcObject = await navigator.mediaDevices.getUserMedia({
+      frontStream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: { exact: frontCam.deviceId } },
       });
+      camFront.srcObject = frontStream;
 
       try {
-        camBack.srcObject = await navigator.mediaDevices.getUserMedia({
+        backStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId: { exact: backCam.deviceId } },
         });
+        camBack.srcObject = backStream;
       } catch (e) {
-        camBack.srcObject = camFront.srcObject;
+        backStream = frontStream;
+        camBack.srcObject = frontStream;
       }
+
+      await Promise.all([
+        waitForVideoFrame(camFront),
+        waitForVideoFrame(camBack),
+      ]);
 
       frontCameraFrame.classList.remove("is-loading");
       backCameraFrame.classList.remove("is-loading");
@@ -308,7 +366,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    await Promise.all([openQRCamera(), openPlateCameras()]);
+    await openQRCamera();
   } catch (error) {
     cameraStatusLabel.textContent = "Sensor failure";
     feedHealth.textContent = "Check permissions";
@@ -387,6 +445,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         await openPlateCameras();
       }
 
+      await Promise.all([
+        waitForVideoFrame(camFront),
+        waitForVideoFrame(camBack),
+      ]);
+
       if (camFront.readyState < 2 || camBack.readyState < 2) {
         throw new Error("Camera đang khởi động, vui lòng thử lại sau 1 giây.");
       }
@@ -421,15 +484,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         setDetection(
           data.plate || currentReservation.license_plate || "--",
-          "Approved",
-          "Entry authorized",
+          "Đã duyệt",
+          "Cho phép vào",
         );
         setSystemStatus(
-          `Barrier open. Vehicle ${data.plate} admitted.`,
+          `Mở barie. Xe ${data.plate || "--"} đã vào bãi.`,
           "ready",
         );
-        toast(`Xe da vao bai [${data.plate}]`);
-        setTimeout(() => location.reload(), 700);
+        ticketInfo.innerHTML = `
+          <span class="ticket-status success">Vào bãi thành công</span>
+          <div class="ticket-grid">
+            <div class="ticket-label">Biển số</div><div>${data.plate || "--"}</div>
+            <div class="ticket-label">Ô đỗ</div><div>${data.spot || currentReservation.spot_number || "--"}</div>
+            <div class="ticket-label">Trạng thái</div><div>${data.msg || "Cho xe vào bãi thành công"}</div>
+          </div>
+        `;
+        toast(data.msg || `Cho xe vao bai thanh cong [${data.plate || "--"}]`, "success", 4500);
         return;
       }
 
@@ -455,30 +525,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       const billingHtml =
         data.billing && data.billing.additional_charge > 0
           ? `
-            <div class="ticket-label">Additional charge</div><div style="color:#ffd7df;font-weight:700;">${data.billing.additional_charge.toLocaleString("vi-VN")} VND</div>
-            <div class="ticket-label">Final total</div><div style="font-weight:700;">${data.billing.total_final_amount.toLocaleString("vi-VN")} VND</div>
+            <div class="ticket-label">Phụ phí</div><div style="color:#ffd7df;font-weight:700;">${data.billing.additional_charge.toLocaleString("vi-VN")} VND</div>
+            <div class="ticket-label">Tổng cộng</div><div style="font-weight:700;">${data.billing.total_final_amount.toLocaleString("vi-VN")} VND</div>
           `
           : "";
 
       ticketInfo.innerHTML = `
-        <span class="ticket-status success">Checkout complete</span>
+        <span class="ticket-status success">Ra bãi thành công</span>
         <div class="ticket-grid">
-          <div class="ticket-label">Plate</div><div>${data.plate || "--"}</div>
-          <div class="ticket-label">Checkout time</div><div>${new Date(data.checkout_time).toLocaleString("vi-VN")}</div>
+          <div class="ticket-label">Biển số</div><div>${data.plate || "--"}</div>
+          <div class="ticket-label">Giờ ra</div><div>${new Date(data.checkout_time).toLocaleString("vi-VN")}</div>
           ${billingHtml}
         </div>
       `;
 
-      setDetection(data.plate || "--", "Approved", "Exit authorized");
-      setSystemStatus("Barrier open. Vehicle released from parking.", "ready");
-      toast("Barie mo xe ra");
+      setDetection(data.plate || "--", "Đã duyệt", "Cho phép ra");
+      setSystemStatus(data.msg || "Mở barie. Xe đã ra khỏi bãi.", "ready");
+      toast(data.msg || `Cho xe ra bai thanh cong [${data.plate || "--"}]`, "success", 4500);
       confirmBtn.disabled = true;
     } catch (error) {
       confirmBtn.disabled = !currentReservation;
       renderError(error.message);
       setDetection("--", "--", "Action failed");
       setSystemStatus(`Execution failed: ${error.message}`, "error");
-      toast(error.message);
+      toast(error.message, "error", 4500);
     }
   });
 

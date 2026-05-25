@@ -231,44 +231,87 @@ function renderTickets() {
 
 function renderPagination(totalPages) {
   const container = document.getElementById("paginationContainer");
-  if (totalPages <= 1) {
+  const totalItems = currentTickets.filter((t) => {
+    const keyword = document.getElementById("searchInput").value.toLowerCase();
+    const filter = document.getElementById("filterType").value;
+    const searchStr =
+      `${t.ticket_code} ${t.customer_name} ${t.license_plate} ${t.phone}`.toLowerCase();
+    return searchStr.includes(keyword) && (filter === "ALL" || t.type === filter);
+  }).length;
+
+  if (!totalItems) {
     container.innerHTML = "";
     return;
   }
 
+  const startItem = (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalItems);
+
+  const pages = [];
+  const addPage = (page) => {
+    if (page >= 1 && page <= totalPages && !pages.includes(page)) {
+      pages.push(page);
+    }
+  };
+
+  addPage(1);
+  addPage(currentPage - 1);
+  addPage(currentPage);
+  addPage(currentPage + 1);
+  addPage(totalPages);
+  pages.sort((a, b) => a - b);
+
   let html = `
-    <button class="page-btn" onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>
-      <i class="fas fa-chevron-left"></i> Prev
-    </button>
-    <div class="page-numbers">
+    <div class="pagination-summary">
+      Hiển thị <b>${startItem}-${endItem}</b> / <b>${totalItems}</b> vé
+    </div>
+    <div class="pagination-controls">
+      <button class="page-btn icon-only" onclick="goToPage(1)" ${currentPage === 1 ? "disabled" : ""} title="Trang đầu">
+        <i class="fas fa-angles-left"></i>
+      </button>
+      <button class="page-btn" onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>
+        <i class="fas fa-chevron-left"></i>
+        <span>Trước</span>
+      </button>
+      <div class="page-numbers">
   `;
 
-  for (let i = 1; i <= totalPages; i++) {
+  pages.forEach((page, index) => {
+    if (index > 0 && page - pages[index - 1] > 1) {
+      html += `<span class="page-ellipsis">...</span>`;
+    }
+
     html += `
-      <button class="page-num ${i === currentPage ? "active" : ""}" onclick="goToPage(${i})">
-        ${i}
+      <button class="page-num ${page === currentPage ? "active" : ""}" onclick="goToPage(${page})" aria-label="Trang ${page}">
+        ${page}
       </button>
     `;
-  }
+  });
 
   html += `
+      </div>
+      <button class="page-btn" onclick="changePage(1)" ${currentPage === totalPages ? "disabled" : ""}>
+        <span>Sau</span>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <button class="page-btn icon-only" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""} title="Trang cuối">
+        <i class="fas fa-angles-right"></i>
+      </button>
     </div>
-    <button class="page-btn" onclick="changePage(1)" ${currentPage === totalPages ? "disabled" : ""}>
-      Next <i class="fas fa-chevron-right"></i>
-    </button>
   `;
 
   container.innerHTML = html;
 }
 
 window.changePage = function (dir) {
-  currentPage += dir;
+  const totalPages = Math.max(1, Math.ceil(currentTickets.length / pageSize));
+  currentPage = Math.min(Math.max(currentPage + dir, 1), totalPages);
   renderTickets();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
 window.goToPage = function (page) {
-  currentPage = page;
+  currentPage = Math.max(1, Number(page) || 1);
   renderTickets();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };

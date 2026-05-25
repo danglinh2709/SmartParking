@@ -13,6 +13,10 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use((req, res, next) => {
+  console.log(`[API REQUEST] ${req.method} ${req.url}`, req.method === 'POST' ? { ...req.body, password: req.body.password ? '***' : undefined } : '');
+  next();
+});
 
 app.use("/images", express.static(path.join(__dirname, "public/images")));
 

@@ -23,7 +23,8 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
             WHERE s.parking_lot_id = ps.parking_lot_id
               AND s.spot_number = ps.spot_code
               AND s.status = 'IN'
-          ) THEN 'OCCUPIED'
+          )
+          AND ISNULL(ps.is_occupied, 0) = 1 THEN 'OCCUPIED'
 
           -- ĐÃ THANH TOÁN + ĐÃ CHECKIN + ĐÃ OUT
           WHEN EXISTS (
@@ -33,13 +34,9 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.status = 'PAID'
               AND r.used = 1
               AND r.is_active = 1
+              AND r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())
           )
-          AND NOT EXISTS (
-            SELECT 1 FROM ParkingSession s
-            WHERE s.parking_lot_id = ps.parking_lot_id
-              AND s.spot_number = ps.spot_code
-              AND s.status = 'IN'
-          ) THEN 'TEMP_OUT'
+          AND ISNULL(ps.is_occupied, 0) = 0 THEN 'TEMP_OUT'
 
           --  ĐÃ THANH TOÁN (CHƯA CHECKIN)
           WHEN EXISTS (
@@ -48,6 +45,7 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.spot_number = ps.spot_code
               AND r.status = 'PAID'
               AND r.is_active = 1
+              AND r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())
           ) THEN 'PAID'
 
           -- CHƯA THANH TOÁN
@@ -99,6 +97,7 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.spot_number = ps.spot_code
               AND r.status = 'PAID'
               AND r.is_active = 1
+              AND r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())
             ORDER BY r.created_at DESC)
         ) AS ticket_code,
 
@@ -125,6 +124,7 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.spot_number = ps.spot_code
               AND r.status = 'PAID'
               AND r.is_active = 1
+              AND r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())
             ORDER BY r.created_at DESC)
         ) AS license_plate,
 
@@ -157,6 +157,7 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.spot_number = ps.spot_code
               AND r.status = 'PAID'
               AND r.is_active = 1
+              AND r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())
             ORDER BY r.created_at DESC)
         ) AS start_time,
 
@@ -175,6 +176,7 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
               AND r.spot_number = ps.spot_code
               AND r.status = 'PAID'
               AND r.is_active = 1
+              AND r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())
             ORDER BY r.created_at DESC)
         ) AS end_time,
 
@@ -186,6 +188,7 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
             AND r.user_id IS NOT NULL
             AND r.status IN ('PENDING','PAID')
             AND r.is_active = 1
+            AND (r.status = 'PENDING' OR r.end_time >= DATEADD(HOUR, 7, GETUTCDATE()))
           ORDER BY r.created_at DESC) AS customer_name,
 
         (SELECT TOP 1 u.Phone
@@ -196,16 +199,17 @@ exports.getSpotStatus = async (parkingLotId, userId) => {
             AND r.user_id IS NOT NULL
             AND r.status IN ('PENDING','PAID')
             AND r.is_active = 1
+            AND (r.status = 'PENDING' OR r.end_time >= DATEADD(HOUR, 7, GETUTCDATE()))
           ORDER BY r.created_at DESC) AS customer_phone,
 
         -- ===== NEW: Mapping improvements =====
         COALESCE(
           (SELECT TOP 1 s.actual_vehicle_type FROM ParkingSession s WHERE s.parking_lot_id = ps.parking_lot_id AND s.spot_number = ps.spot_code AND s.status = 'IN'),
-          (SELECT TOP 1 r.vehicle_type FROM ParkingReservation r WHERE r.parking_lot_id = ps.parking_lot_id AND r.spot_number = ps.spot_code AND r.status IN ('PENDING','PAID') AND r.is_active = 1)
+          (SELECT TOP 1 r.vehicle_type FROM ParkingReservation r WHERE r.parking_lot_id = ps.parking_lot_id AND r.spot_number = ps.spot_code AND r.status IN ('PENDING','PAID') AND r.is_active = 1 AND (r.status = 'PENDING' OR r.end_time >= DATEADD(HOUR, 7, GETUTCDATE())))
         ) AS current_vehicle_type,
 
         COALESCE(
-          (SELECT TOP 1 r.amount FROM ParkingReservation r WHERE r.parking_lot_id = ps.parking_lot_id AND r.spot_number = ps.spot_code AND r.status IN ('PENDING','PAID') AND r.is_active = 1),
+          (SELECT TOP 1 r.amount FROM ParkingReservation r WHERE r.parking_lot_id = ps.parking_lot_id AND r.spot_number = ps.spot_code AND r.status IN ('PENDING','PAID') AND r.is_active = 1 AND (r.status = 'PENDING' OR r.end_time >= DATEADD(HOUR, 7, GETUTCDATE()))),
           0
         ) AS amount_paid
 
@@ -234,6 +238,21 @@ exports.release = async (tx, spot, lot) => {
         is_occupied = 0,
         reservation_id = NULL
       WHERE 
+        spot_code = @spot
+        AND parking_lot_id = @lot
+    `);
+};
+
+exports.markTempOut = async (tx, spot, lot, ticket) => {
+  await tx
+    .request()
+    .input("spot", spot)
+    .input("lot", lot)
+    .query(`
+      UPDATE ParkingSpot
+      SET
+        is_occupied = 0
+      WHERE
         spot_code = @spot
         AND parking_lot_id = @lot
     `);

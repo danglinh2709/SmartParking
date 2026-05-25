@@ -15,15 +15,25 @@ const config = {
 };
 
 // Tạo Connection Pool và xuất để sử dụng trong app
-const poolPromise = new sql.ConnectionPool(config)
-  .connect()
-  .then((pool) => {
+const poolPromise = (async () => {
+  try {
+    // 1. Connect to master database first to check/create the target database
+    const masterConfig = { ...config, database: "master" };
+    const masterPool = await new sql.ConnectionPool(masterConfig).connect();
+    
+    const dbName = config.database;
+    const checkDbQuery = `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '${dbName}') BEGIN CREATE DATABASE [${dbName}] END`;
+    await masterPool.request().query(checkDbQuery);
+    await masterPool.close();
+
+    // 2. Connect to the actual target database
+    const pool = await new sql.ConnectionPool(config).connect();
     console.log("Connected to SQL Server via SQL Authentication");
     return pool;
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error(" Database connection failed:", err);
     process.exit(1); // thoát app nếu connect fail
-  });
+  }
+})();
 
 module.exports = poolPromise;

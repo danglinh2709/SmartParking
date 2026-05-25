@@ -33,8 +33,8 @@ exports.getStaffInfo = async (userId) => {
   const res = await pool.request().input("user_id", userId).query(`
     SELECT u.FullName as full_name, u.Role as role, pl.Name as parking_lot_name
     FROM Users u
-    LEFT JOIN ParkingLotStaff pls ON pls.UserID = u.UserID AND pls.IsActive = 1
-    LEFT JOIN ParkingLot pl ON pl.ParkingLotID = pls.ParkingLotID
+    LEFT JOIN ParkingLotStaff pls ON pls.user_id = u.UserID AND pls.is_active = 1
+    LEFT JOIN ParkingLot pl ON pl.id = pls.parking_lot_id
     WHERE u.UserID = @user_id
   `);
   return res.recordset[0];

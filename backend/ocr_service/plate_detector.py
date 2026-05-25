@@ -12,8 +12,7 @@ def detect_plate(img):
         results = model.predict(
             source=img,
             conf=0.25,
-            verbose=False,
-            fuse=False
+            verbose=False
         )
 
         for r in results:

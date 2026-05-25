@@ -37,7 +37,17 @@ class AnalyticsService {
       SELECT
         (SELECT ISNULL(SUM(final_amount), 0) FROM ParkingSession WHERE 1=1 ${dateCondition.replace(/created_at/g, 'checkout_time')} ${lotCondition}) +
         (SELECT ISNULL(SUM(price), 0) FROM LongTermTicket WHERE 1=1 ${dateCondition} ${typeCondition}) +
-        (SELECT ISNULL(SUM(amount), 0) FROM ParkingReservation WHERE 1=1 ${dateCondition} ${lotCondition} ${typeCondition})
+        (SELECT ISNULL(SUM(amount), 0)
+         FROM ParkingReservation pr
+         WHERE 1=1 ${dateCondition} ${lotCondition} ${typeCondition}
+           AND pr.status = 'PAID'
+           AND pr.is_active = 1
+           AND NOT EXISTS (
+             SELECT 1
+             FROM ParkingSession ps
+             WHERE ps.ticket = pr.ticket
+               AND ps.status = 'OUT'
+           ))
         AS totalRevenue,
         
         (SELECT COUNT(*) FROM ParkingSession WHERE 1=1 ${dateCondition.replace(/created_at/g, 'checkin_time')} ${lotCondition} ${typeCondition.replace(/vehicle_type/g, 'actual_vehicle_type')})

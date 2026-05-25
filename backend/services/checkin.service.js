@@ -108,7 +108,7 @@ exports.checkin = async ({
     });
 
     return {
-      msg: "Cho xe vào bãi thành công",
+      msg: `Cho xe vào bãi thành công [${ticketNorm}]`,
       plate: ticketNorm,
       spot: reservation.spot_number,
     };

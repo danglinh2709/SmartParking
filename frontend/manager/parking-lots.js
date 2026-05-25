@@ -9,13 +9,37 @@ const itemsPerPage = 10;
 let currentLotId = null;
 let allStaffCache = [];
 
+function mergeStaffAssignments(parkingLots, assignments) {
+  const staffByLot = new Map();
+
+  assignments.forEach((assignment) => {
+    if (!assignment.parking_lot_id) return;
+
+    const list = staffByLot.get(assignment.parking_lot_id) || [];
+    if (assignment.full_name) list.push(assignment.full_name);
+    staffByLot.set(assignment.parking_lot_id, list);
+  });
+
+  return parkingLots.map((lot) => {
+    const staffNames = staffByLot.get(lot.id) || [];
+
+    return {
+      ...lot,
+      staff_names: staffNames.length ? staffNames.join(", ") : "",
+      staff_count: staffNames.length,
+    };
+  });
+}
+
 /* ================= LOAD ================= */
 async function loadParkingLots() {
   try {
     const token = localStorage.getItem("sp_token");
-    const res = await fetch(`${API}/manager/parking-lots`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const headers = { Authorization: `Bearer ${token}` };
+    const [lotsRes, assignmentsRes] = await Promise.all([
+      fetch(`${API}/manager/parking-lots`, { headers }),
+      fetch(`${API}/manager/assignments`, { headers }),
+    ]);
 
     if (!res.ok) throw new Error("Không tải được danh sách bãi");
 
@@ -59,6 +83,43 @@ function clearSearch() {
   const input = document.getElementById("searchInput");
   if (input) input.value = "";
   filterAndRender();
+}
+
+function escapeHTML(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function renderStaffCell(parkingLot) {
+  const staffNames = (parkingLot.staff_names || "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean);
+
+  const staffList = staffNames.length
+    ? staffNames
+        .slice(0, 2)
+        .map((name) => `<span class="staff-name">${escapeHTML(name)}</span>`)
+        .join("")
+    : `<span class="staff-empty">Chưa phân công</span>`;
+
+  const extraCount = staffNames.length > 2
+    ? `<span class="staff-more">+${staffNames.length - 2}</span>`
+    : "";
+
+  return `
+    <div class="staff-cell">
+      <div class="staff-list">${staffList}${extraCount}</div>
+      <button class="action-btn staff-btn" onclick="openStaffModal(${parkingLot.id}, '${escapeHTML(parkingLot.name)}')"
+        title="Quản lý nhân viên">
+        <i class="fas fa-users"></i>
+      </button>
+    </div>
+  `;
 }
 
 /* ================= RENDER TABLE ROWS ================= */
@@ -171,10 +232,7 @@ function renderParkingLots() {
           }
         </td>
         <td class="col-staff">
-          <button class="action-btn staff-btn" onclick="openStaffModal(${p.id}, '${p.name.replace(/'/g, "&apos;")}')"
-            title="Quản lý nhân viên">
-            <i class="fas fa-users"></i>
-          </button>
+          ${renderStaffCell(p)}
         </td>
         <td class="col-actions">
           <div class="row-actions">
@@ -529,6 +587,48 @@ async function deleteParking(id) {
   } catch (err) {
     alert(err.message);
   }
+}
+
+async function loadParkingLotsFromAssignments() {
+  try {
+    const token = localStorage.getItem("sp_token");
+    const headers = { Authorization: `Bearer ${token}` };
+    const [lotsRes, assignmentsRes] = await Promise.all([
+      fetch(`${API}/manager/parking-lots`, { headers }),
+      fetch(`${API}/manager/assignments`, { headers }),
+    ]);
+
+    if (!lotsRes.ok) throw new Error("Khong tai duoc danh sach bai");
+    if (!assignmentsRes.ok) throw new Error("Khong tai duoc danh sach phan cong");
+
+    const lots = await lotsRes.json();
+    const assignments = await assignmentsRes.json();
+
+    allParkingLots = mergeStaffAssignments(lots, assignments);
+    filteredLots = allParkingLots;
+    currentPage = 1;
+    renderParkingLots();
+  } catch (err) {
+    console.error(err);
+    alert("Loi tai danh sach bai do");
+  }
+}
+
+loadParkingLots = loadParkingLotsFromAssignments;
+
+/* ========= SOCKET REAL-TIME ========= */
+if (typeof io !== "undefined") {
+  const _socket = io("http://localhost:5000");
+  let _lotsTimer = null;
+
+  function _scheduleLotRefresh() {
+    clearTimeout(_lotsTimer);
+    _lotsTimer = setTimeout(() => loadParkingLots(), 2500);
+  }
+
+  _socket.on("PARKING_UPDATED", _scheduleLotRefresh);
+  _socket.on("spot-updated", _scheduleLotRefresh);
+  _socket.on("spot-freed", _scheduleLotRefresh);
 }
 
 /* ================= INIT ================= */

@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let allZones = [];
   let filteredSpots = [];
   let currentPage = 1;
-  const pageSize = 30; // Increased to show more slots at once
+  const pageSize = 30; // Restore pagination
   let selectedSpot = null;
   let isLoading = false;
   let searchDebounce = null;
@@ -133,6 +133,13 @@ document.addEventListener("DOMContentLoaded", () => {
           className: "occupied",
           icon: "fa-car",
         };
+      case "TEMP_OUT":
+        return {
+          key: "TEMP_OUT",
+          badge: "Temp Out",
+          className: "temp-out",
+          icon: "fa-person-running",
+        };
       case "PENDING":
       case "PAID":
         return {
@@ -177,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const totalCapacity = lotData ? lotData.total_spots : 300;
 
       allSpots = (Array.isArray(data) ? data : []).slice(0, totalCapacity);
-      
+
       applyFiltersAndRender();
     } catch (err) {
       console.error(err);
@@ -224,6 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
           LOCKED: 5,
           MAINTENANCE: 4,
           OCCUPIED: 3,
+          TEMP_OUT: 3,
           PAID: 2,
           FREE: 1,
         };
@@ -264,11 +272,47 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderCurrentPage() {
-    const totalPages = Math.max(1, Math.ceil(filteredSpots.length / pageSize));
+    const cars = [];
+    const bikes = [];
+    const bicycles = [];
+
+    // Pre-classify filteredSpots into Cars and Motorbikes based on their zone's total spots
+    allZones.forEach(zone => {
+      const zoneSpots = filteredSpots.filter(s => s.zone_id === zone.id);
+      const isBicycleZone = (zone?.supported_vehicles || "").toUpperCase() === "BICYCLE";
+      
+      const allSpotsInThisZone = allSpots.filter(s => s.zone_id === zone.id)
+        .sort((a, b) => (a.spot_code + "").localeCompare(b.spot_code + "", undefined, { numeric: true }));
+      const carCount = Math.floor(allSpotsInThisZone.length * 0.3);
+      const carCodes = allSpotsInThisZone.slice(0, carCount).map(s => s.spot_code);
+
+      zoneSpots.forEach(s => {
+         if (isBicycleZone) bicycles.push(s);
+         else if (carCodes.includes(s.spot_code)) cars.push(s);
+         else bikes.push(s);
+      });
+    });
+
+    const carPageSize = Math.max(1, Math.floor(pageSize * 0.3));
+    const bikePageSize = pageSize - carPageSize;
+    
+    const totalPages = Math.max(1, Math.ceil(Math.max(
+      cars.length / carPageSize, 
+      bikes.length / bikePageSize, 
+      bicycles.length / pageSize
+    )));
+
     if (currentPage > totalPages) currentPage = totalPages;
 
-    const start = (currentPage - 1) * pageSize;
-    const pageList = filteredSpots.slice(start, start + pageSize);
+    const carStart = (currentPage - 1) * carPageSize;
+    const bikeStart = (currentPage - 1) * bikePageSize;
+    const bicycleStart = (currentPage - 1) * pageSize;
+
+    const pageCars = cars.slice(carStart, carStart + carPageSize);
+    const pageBikes = bikes.slice(bikeStart, bikeStart + bikePageSize);
+    const pageBicycles = bicycles.slice(bicycleStart, bicycleStart + pageSize);
+
+    const pageList = [...pageCars, ...pageBikes, ...pageBicycles];
 
     renderPagination(totalPages);
     renderZoneSplitGrids(pageList);
@@ -284,17 +328,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Group by Zone
     const zonesInPage = [...new Set(list.map((s) => s.zone_id))];
-    
+
     zonesInPage.forEach((zoneId) => {
       const zone = allZones.find((z) => z.id === zoneId);
       const zoneSpotsInPage = list.filter((s) => s.zone_id === zoneId);
-      
+
       // Get all spots in this zone from allSpots for stable classification
       const allSpotsInThisZone = allSpots
         .filter(s => s.zone_id === zoneId)
         .sort((a, b) => (a.spot_code + "").localeCompare(b.spot_code + "", undefined, { numeric: true }));
-      
-      const carCount = Math.floor(allSpotsInThisZone.length * 0.2);
+
+      const carCount = Math.floor(allSpotsInThisZone.length * 0.3);
       const carCodes = allSpotsInThisZone.slice(0, carCount).map(s => s.spot_code);
 
       const zoneCard = document.createElement("div");
@@ -318,11 +362,11 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           ` : `
             <div class="grid-car">
-              <div class="grid-header"><i class="fas fa-car"></i> Car Area (20%)</div>
+              <div class="grid-header"><i class="fas fa-car"></i> Car Area (30%)</div>
               <div class="slot-grid-container" id="grid-car-${zoneId}"></div>
             </div>
             <div class="grid-bike">
-              <div class="grid-header"><i class="fas fa-motorcycle"></i> Motorbike Area (80%)</div>
+              <div class="grid-header"><i class="fas fa-motorcycle"></i> Motorbike Area (70%)</div>
               <div class="slot-grid-container" id="grid-bike-${zoneId}"></div>
             </div>
           `}
@@ -338,12 +382,12 @@ document.addEventListener("DOMContentLoaded", () => {
       zoneSpotsInPage.forEach((spot) => {
         const isCar = carCodes.includes(spot.spot_code);
         spot.classifiedType = isCar ? "Car" : "Motorbike";
-        
+
         let targetGrid = gridFull;
         if (!isBicycleZone) {
           targetGrid = isCar ? gridCar : gridBike;
         }
-        
+
         if (targetGrid) appendSlot(targetGrid, spot, zone);
       });
     });
@@ -405,9 +449,9 @@ document.addEventListener("DOMContentLoaded", () => {
     hoverCode.textContent = spot.zone_name ? `${spot.zone_name}-${spot.spot_code}` : spot.spot_code;
     hoverStatus.textContent = state.badge;
     hoverStatus.className = `status-badge ${state.className}`;
-    
+
     hoverPlate.textContent = spot.license_plate || spot.plate_number || "-";
-    
+
     const time = spot.checkin_time || spot.start_time;
     hoverTime.textContent = time ? new Date(time).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }) : "-";
 
@@ -417,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function moveHoverCard(event) {
     const x = event.clientX + 15;
     const y = event.clientY + 15;
-    
+
     // Boundary check
     const cardWidth = slotHoverCard.offsetWidth;
     const cardHeight = slotHoverCard.offsetHeight;
@@ -608,12 +652,17 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ========= SOCKET ========= */
   if (typeof io === "function") {
     const socket = io("http://localhost:5000");
-    socket.on("spot-updated", (payload) => {
-      if (Number(payload?.parking_lot_id) === parkingLotId) {
-        showToast(`Slot #${payload.spot_number} updated`, "info");
+    const refreshIfCurrentLot = (payload) => {
+      const payloadLotId = payload?.parking_lot_id ?? payload?.lotId;
+      const payloadSpot = payload?.spot_number ?? payload?.spotId;
+      if (Number(payloadLotId) === parkingLotId) {
+        showToast(`Slot #${payloadSpot} updated`, "info");
         loadSpots(true);
       }
-    });
+    };
+
+    socket.on("spot-updated", refreshIfCurrentLot);
+    socket.on("PARKING_UPDATED", refreshIfCurrentLot);
   }
 
   /* ========= START ========= */

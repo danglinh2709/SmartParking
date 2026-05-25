@@ -22,7 +22,13 @@ exports.getAll = async () => {
         FROM ParkingLotStaff pls2
         JOIN ParkingLot p ON pls2.parking_lot_id = p.id
         WHERE pls2.user_id = u.UserID AND pls2.is_active = 1
-      ) AS parking_names
+      ) AS parking_names,
+      (
+        SELECT STRING_AGG(p.name, ', ')
+        FROM ParkingLotStaff pls2
+        JOIN ParkingLot p ON pls2.parking_lot_id = p.id
+        WHERE pls2.user_id = u.UserID AND pls2.is_active = 1
+      ) AS parking_name
     FROM Users u
     WHERE u.Role = 'staff'
       AND u.IsActive = 1

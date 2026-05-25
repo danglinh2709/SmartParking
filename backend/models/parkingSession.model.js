@@ -51,6 +51,25 @@ exports.checkout = async (tx, { id, frontPath, backPath }) => {
     `);
 };
 
+exports.closeActiveSpotSessions = async (tx, { lot, spot, frontPath, backPath }) => {
+  await tx
+    .request()
+    .input("lot", lot)
+    .input("spot", spot)
+    .input("front", frontPath)
+    .input("back", backPath).query(`
+      UPDATE ParkingSession
+      SET
+        checkout_time = COALESCE(checkout_time, GETDATE()),
+        plate_front_image = COALESCE(@front, plate_front_image),
+        plate_back_image = COALESCE(@back, plate_back_image),
+        status = 'OUT'
+      WHERE parking_lot_id = @lot
+        AND spot_number = @spot
+        AND status = 'IN'
+    `);
+};
+
 exports.verifyCheckoutTicket = async (ticket) => {
   const pool = await poolPromise;
   const res = await pool.request().input("ticket", ticket).query(`

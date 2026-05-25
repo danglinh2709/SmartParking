@@ -31,7 +31,8 @@ window.onload = async () => {
 
   try {
     const res = await fetch(`${API}/parking-lots`);
-    baidoDangHienThi = await res.json();
+    const lots = await res.json();
+    baidoDangHienThi = await hydrateParkingLotStats(lots);
     filteredList = [...baidoDangHienThi]; // Initialize filtered list
     applyPaginationAndRender(); // New unified render function
 
@@ -50,6 +51,40 @@ window.onload = async () => {
     alert("Không tải được dữ liệu bãi đỗ");
   }
 };
+
+async function hydrateParkingLotStats(lots) {
+  if (!Array.isArray(lots)) return [];
+
+  const hydrated = await Promise.all(
+    lots.map(async (lot) => {
+      try {
+        const res = await fetch(`${API}/parking-lots/${lot.id}/spot-status`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("sp_token") || ""}` },
+        });
+        if (!res.ok) return lot;
+
+        const spots = await res.json();
+        if (!Array.isArray(spots) || spots.length === 0) return lot;
+
+        const available = spots.filter((spot) => {
+          const adminStatus = String(spot.admin_status || "NORMAL").toUpperCase();
+          const spotStatus = String(spot.spot_status || "FREE").toUpperCase();
+          return adminStatus === "NORMAL" && spotStatus === "FREE";
+        }).length;
+
+        return {
+          ...lot,
+          total_spots: spots.length,
+          available_spots: available,
+        };
+      } catch {
+        return lot;
+      }
+    }),
+  );
+
+  return hydrated;
+}
 
 /* ================= PAGINATION LOGIC ================= */
 function applyPaginationAndRender() {
@@ -163,10 +198,12 @@ function renderParkingList(list) {
     card.className = "parking-card";
 
     // Tính toán công suất
-    const total = lot.total_spots || 0;
-    const avail = lot.available_spots || 0;
-    const occupied = total - avail;
-    const percent = total > 0 ? Math.round((occupied / total) * 100) : 0;
+    const total = Math.max(Number(lot.total_spots) || 0, 0);
+    const avail = Math.min(Math.max(Number(lot.available_spots) || 0, 0), total);
+    const occupied = Math.max(total - avail, 0);
+    const percent = total > 0
+      ? Math.min(Math.max(Math.round((occupied / total) * 100), 0), 100)
+      : 0;
 
     // Màu sắc thanh tiến trình
     let barColor = "green";
@@ -193,7 +230,7 @@ function renderParkingList(list) {
 
     card.innerHTML = `
       <div class="card-img-wrapper">
-        <img src="http://localhost:5000${lot.image_url}" alt="${lot.name}" onerror="this.src='https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400'">
+        <img src="${lot.image_url ? `http://localhost:5000${lot.image_url}` : 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400'}" alt="${lot.name}" onerror="this.src='https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400'">
         <div class="card-overlay">
           ${statusBadge}
           <span class="badge" style="background: rgba(15, 23, 42, 0.8); color: white;">${percent}% Full</span>
@@ -341,8 +378,8 @@ async function showSpots(parkingLotId, totalSpots) {
     window.currentLotZones.forEach((zone, idx) => {
       const color = ZONE_COLORS[idx % ZONE_COLORS.length];
       const typeLabel = ZONE_TYPE_LABEL[zone.zone_type] || zone.zone_type || "";
-      const isBicycleZone = (zone.supported_vehicles || "").toUpperCase().includes("BICYCLE") && 
-                           !(zone.supported_vehicles || "").toUpperCase().includes("CAR");
+      const isBicycleZone = (zone.supported_vehicles || "").toUpperCase().includes("BICYCLE") &&
+        !(zone.supported_vehicles || "").toUpperCase().includes("CAR");
 
       const section = document.createElement("div");
       section.className = "zone";
@@ -358,20 +395,20 @@ async function showSpots(parkingLotId, totalSpots) {
             </div>
           ` : `
             <div class="grid-container car-width">
-              <div class="sub-header"><i class="fas fa-car"></i> Khu vực Ô tô (20%)</div>
+              <div class="sub-header"><i class="fas fa-car"></i> Khu vực Ô tô (30%)</div>
               <div class="spot-grid" id="grid-car-${zone.id}"></div>
             </div>
             <div class="grid-container bike-width">
-              <div class="sub-header"><i class="fas fa-motorcycle"></i> Khu vực Xe máy (80%)</div>
+              <div class="sub-header"><i class="fas fa-motorcycle"></i> Khu vực Xe máy (70%)</div>
               <div class="spot-grid" id="grid-bike-${zone.id}"></div>
             </div>
           `}
         </div>
       `;
       legendDiv.appendChild(section);
-      
+
       const zoneSpots = validData.filter(s => s.zone_id === zone.id);
-      const carCount = Math.floor(zoneSpots.length * 0.2);
+      const carCount = Math.floor(zoneSpots.length * 0.3);
       const carCodes = zoneSpots.slice(0, carCount).map(s => s.spot_code);
 
       const gridFull = section.querySelector(`#grid-full-${zone.id}`);
@@ -382,7 +419,7 @@ async function showSpots(parkingLotId, totalSpots) {
         const isCar = carCodes.includes(s.spot_code);
         let target = isBicycleZone ? gridFull : (isCar ? gridCar : gridBike);
         if (target) renderSingleSpot(target, s, parkingLotId);
-        
+
         if (s.spot_status === 'OCCUPIED') occupiedCount++;
         else if (s.spot_status === 'TEMP_OUT') tempOutCount++;
         else if (s.spot_status === 'PAID') paidCount++;
@@ -716,9 +753,9 @@ function tinhKhoangCach(lat1, lon1, lat2, lon2) {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
@@ -969,3 +1006,28 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 });
+
+/* ========= SOCKET REAL-TIME ========= */
+(function () {
+  if (typeof io === "undefined") return;
+
+  const _paySocket = io("http://localhost:5000");
+  let _spotRefreshTimer = null;
+
+  function _onSpotChange(data) {
+    // Chỉ reload khi đang xem chi tiết bãi đỗ nào đó
+    if (!currentLotId) return;
+
+    const lotId = data?.lotId ?? data?.parking_lot_id;
+    if (lotId && Number(lotId) !== Number(currentLotId)) return;
+
+    clearTimeout(_spotRefreshTimer);
+    _spotRefreshTimer = setTimeout(() => {
+      showSpots(currentLotId, currentTotalSpots);
+    }, 1500);
+  }
+
+  _paySocket.on("PARKING_UPDATED", _onSpotChange);
+  _paySocket.on("spot-updated", _onSpotChange);
+  _paySocket.on("spot-freed", _onSpotChange);
+})();

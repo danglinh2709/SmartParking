@@ -160,6 +160,7 @@
 .col-capacity { width: 130px; }
 .col-usage    { width: 180px; }
 .col-location { width: 140px; }
+.col-staff    { width: 210px; }
 .col-actions  { width: 110px; text-align: center; }
 
 /* ===== TABLE BODY ROWS ===== */
@@ -312,6 +313,63 @@
 .loc-badge.unlocated {
   background: #f8fafc;
   color: #94a3b8;
+}
+
+/* ===== STAFF ===== */
+.staff-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.staff-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.staff-name,
+.staff-more,
+.staff-empty {
+  display: inline-flex;
+  align-items: center;
+  max-width: 120px;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.staff-name {
+  background: #f1f5f9;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+}
+
+.staff-more {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.staff-empty {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.staff-btn {
+  flex: 0 0 34px;
+  margin-left: auto;
 }
 
 /* ===== ROW ACTIONS ===== */

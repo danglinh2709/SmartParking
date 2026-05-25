@@ -4,7 +4,8 @@ body {
   font-family: "Inter", sans-serif;
   background-color: #ffffff;
   box-sizing: border-box;
-  padding-top: 70px; /* Account for fixed header */
+  padding-top: 70px;
+  /* Account for fixed header */
 }
 
 header {
@@ -29,8 +30,10 @@ header {
   font-size: 24px;
   font-weight: bold;
 }
+
 .logo a {
-  text-decoration: none; /* Loại bỏ dấu gạch chân */
+  text-decoration: none;
+  /* Loại bỏ dấu gạch chân */
 }
 
 .orange {
@@ -70,7 +73,8 @@ nav ul li a:hover {
 .dropdown-content {
   display: none;
   position: absolute;
-  top: 20px; /* Giảm khoảng cách từ menu */
+  top: 20px;
+  /* Giảm khoảng cách từ menu */
   left: 0;
   background-color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -112,6 +116,7 @@ nav ul li a:hover {
   background-color: rgb(232, 233, 238);
   color: black;
 }
+
 /*  */
 
 .modal {
@@ -143,6 +148,7 @@ nav ul li a:hover {
     opacity: 0;
     transform: scale(0.9) translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -284,6 +290,7 @@ nav ul li a:hover {
   background: rgba(34, 197, 94, 0.9);
   color: white;
 }
+
 .badge-full {
   background: rgba(239, 68, 68, 0.9);
   color: white;
@@ -349,9 +356,11 @@ nav ul li a:hover {
 .progress-fill.green {
   background: linear-gradient(90deg, #10b981, #34d399);
 }
+
 .progress-fill.orange {
   background: linear-gradient(90deg, #f59e0b, #fbbf24);
 }
+
 .progress-fill.red {
   background: linear-gradient(90deg, #ef4444, #f87171);
 }
@@ -400,6 +409,7 @@ nav ul li a:hover {
   transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
 }
+
 /* ===== HERO SECTION ===== */
 .hero-section {
   padding: 80px 0 60px;
@@ -416,11 +426,9 @@ nav ul li a:hover {
   right: -10%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(
-    circle,
-    rgba(59, 130, 246, 0.05) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle,
+      rgba(59, 130, 246, 0.05) 0%,
+      transparent 70%);
   border-radius: 50%;
 }
 
@@ -567,6 +575,7 @@ nav ul li a:hover {
   box-shadow: 0 15px 35px rgba(59, 130, 246, 0.12);
   transform: translateY(-2px);
 }
+
 /* New premium grid styles are defined above */
 
 /* ===== DETAILED VIEW HEADER ===== */
@@ -645,7 +654,7 @@ nav ul li a:hover {
   border: 1px solid #f1f5f9;
 }
 
-.parking-summary > div {
+.parking-summary>div {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -731,6 +740,7 @@ nav ul li a:hover {
     opacity: 0;
     transform: scale(0.9) translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -811,6 +821,7 @@ nav ul li a:hover {
   color: #1e293b;
   border-color: #cbd5e1;
 }
+
 /* ===== TOAST NOTIFICATION ===== */
 #toast-container {
   position: fixed;
@@ -821,7 +832,8 @@ nav ul li a:hover {
 
 .toast {
   min-width: 220px;
-  background: #22c55e; /* xanh thành công */
+  background: #22c55e;
+  /* xanh thành công */
   color: white;
   padding: 12px 16px;
   margin-bottom: 12px;
@@ -838,6 +850,7 @@ nav ul li a:hover {
     opacity: 0;
     transform: translateX(40px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -851,7 +864,8 @@ nav ul li a:hover {
 }
 
 .parking-card {
-  padding-bottom: 16px; /* tạo khoảng cách với mép dưới card */
+  padding-bottom: 16px;
+  /* tạo khoảng cách với mép dưới card */
 }
 
 .total-slot {
@@ -1048,6 +1062,7 @@ nav ul li a:hover {
     transform: scale(0.92);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -1074,12 +1089,15 @@ nav ul li a:hover {
   color: white;
   padding: 20px 100px;
 }
+
 .white {
   color: white;
 }
+
 .h1 {
   font-size: 40px;
 }
+
 .footer-container {
   display: flex;
   margin-top: 25px;
@@ -1129,7 +1147,8 @@ nav ul li a:hover {
 
 .social-icons a:hover {
   transform: scale(1.8);
-  color: #f57c00; /* Hoặc chọn màu theo mạng xã hội */
+  color: #f57c00;
+  /* Hoặc chọn màu theo mạng xã hội */
 }
 
 .footer-column p i {
@@ -1186,16 +1205,12 @@ nav ul li a:hover {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(
-      ellipse at 20% 10%,
+    radial-gradient(ellipse at 20% 10%,
       rgba(59, 130, 246, 0.07) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse at 80% 90%,
+      transparent 60%),
+    radial-gradient(ellipse at 80% 90%,
       rgba(16, 185, 129, 0.05) 0%,
-      transparent 55%
-    );
+      transparent 55%);
   pointer-events: none;
 }
 
@@ -1229,7 +1244,8 @@ nav ul li a:hover {
 }
 
 .car-section {
-  flex: 0 0 25%; /* Slightly larger than 20% for better fit of grid */
+  flex: 0 0 25%;
+  /* Slightly larger than 20% for better fit of grid */
   background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%);
   border-color: rgba(59, 130, 246, 0.2);
 }
@@ -1270,6 +1286,7 @@ nav ul li a:hover {
   .parking-layout {
     flex-direction: column;
   }
+
   .car-section {
     flex: none;
     width: 100%;
@@ -1363,14 +1380,23 @@ nav ul li a:hover {
   font-size: 14px;
 }
 
-.car-width .sub-header i { color: #3b82f6; }
-.bike-width .sub-header i { color: #10b981; }
-.full-width .sub-header i { color: #f59e0b; }
+.car-width .sub-header i {
+  color: #3b82f6;
+}
+
+.bike-width .sub-header i {
+  color: #10b981;
+}
+
+.full-width .sub-header i {
+  color: #f59e0b;
+}
 
 @media (max-width: 1024px) {
   .zone-body-layout.split-layout {
     flex-direction: column;
   }
+
   .car-width {
     flex: none;
     width: 100%;
@@ -1432,6 +1458,7 @@ nav ul li a:hover {
   line-height: 1;
   transition: transform 0.25s ease;
 }
+
 .spot:hover i {
   transform: scale(1.12);
 }
@@ -1453,6 +1480,7 @@ nav ul li a:hover {
   color: #34d399;
   background: rgba(52, 211, 153, 0.07);
 }
+
 .spot.free:hover {
   border-color: #34d399;
   box-shadow:
@@ -1490,6 +1518,7 @@ nav ul li a:hover {
   background: rgba(100, 116, 139, 0.05);
   cursor: not-allowed;
 }
+
 .spot.locked:hover {
   transform: none;
   box-shadow: none;
@@ -1500,6 +1529,7 @@ nav ul li a:hover {
   outline: 2.5px dashed #ef4444;
   cursor: pointer !important;
 }
+
 .spot.cancelable:hover {
   background: rgba(239, 68, 68, 0.14) !important;
   transform: scale(1.06);
@@ -1529,21 +1559,27 @@ nav ul li a:hover {
   border-radius: 3px;
   flex-shrink: 0;
 }
+
 .legend-box.free {
   background: #34d399;
 }
+
 .legend-box.pending {
   background: #fbbf24;
 }
+
 .legend-box.paid {
   background: #94a3b8;
 }
+
 .legend-box.occupied {
   background: #f87171;
 }
+
 .legend-box.temp-out {
   background: #fb923c;
 }
+
 .legend-box.total {
   background: #6b7280;
 }
@@ -1578,6 +1614,7 @@ nav ul li a:hover {
   transition: background 0.2s;
   z-index: 10;
 }
+
 .cancel-btn:hover {
   background: #b91c1c;
 }
@@ -1592,22 +1629,27 @@ nav ul li a:hover {
   .parking-map-wrapper {
     padding: 16px 12px 24px;
   }
+
   .spot-grid {
     grid-template-columns: repeat(auto-fill, 62px);
     gap: 10px;
   }
+
   .spot {
     width: 62px;
     height: 90px;
   }
+
   .spot i {
     font-size: 22px;
   }
+
   .cancel-btn {
     position: static;
     margin-bottom: 12px;
     width: 100%;
   }
+
   .parking-title {
     font-size: 20px;
   }
@@ -1618,15 +1660,18 @@ nav ul li a:hover {
     grid-template-columns: repeat(auto-fill, 58px);
     gap: 8px;
   }
+
   .spot {
     width: 58px;
     height: 84px;
   }
 }
+
 /* logoutBtn */
 #logoutBtn {
   background-color: #ef4444;
 }
+
 #logoutBtn:hover {
   background-color: #dc2626;
   color: white;
@@ -1655,7 +1700,8 @@ nav ul li a:hover {
 
 @media (max-width: 768px) {
   body {
-    padding: 0 !important; /* Reset body padding for mobile */
+    padding: 0 !important;
+    /* Reset body padding for mobile */
   }
 
   .search-bar {
@@ -1742,6 +1788,7 @@ nav ul li a:hover {
     gap: 40px !important;
   }
 }
+
 .cancel-content {
   background: #ffffff;
   width: 380px;
@@ -1813,6 +1860,7 @@ nav ul li a:hover {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1823,6 +1871,7 @@ nav ul li a:hover {
     transform: scale(0.95);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

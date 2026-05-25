@@ -44,7 +44,8 @@ function renderStaff() {
     const statusFilter = document.getElementById("statusFilter").value;
 
     const filtered = allStaff.filter((s) => {
-      const isAssigned = s.parking_name && s.parking_name.trim() !== "";
+      const parkingNames = s.parking_names || s.parking_name || "";
+      const isAssigned = parkingNames.trim() !== "";
       const statusClass = isAssigned ? "active" : "unassigned";
 
       const matchesSearch =
@@ -75,13 +76,14 @@ function renderStaff() {
     const currentItems = filtered.slice(startIndex, startIndex + itemsPerPage);
 
     currentItems.forEach((s) => {
-      const isAssigned = s.parking_name && s.parking_name.trim() !== "";
+      const parkingNames = s.parking_names || s.parking_name || "";
+      const isAssigned = parkingNames.trim() !== "";
       const statusClass = isAssigned ? "active" : "unassigned";
       const statusText = isAssigned ? "Assigned" : "Idle";
       const locationIcon = isAssigned
         ? '<i class="fas fa-map-marker-alt"></i>'
         : "";
-      const locationText = isAssigned ? s.parking_name : "No location assigned";
+      const locationText = isAssigned ? parkingNames : "No location assigned";
       const locationClass = isAssigned ? "" : "unassigned";
       const initial = s.full_name ? s.full_name.charAt(0).toUpperCase() : "U";
 

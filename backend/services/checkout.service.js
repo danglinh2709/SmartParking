@@ -106,8 +106,8 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
   const actualDurationHours = Math.ceil(
     (checkoutTimeMs - checkinTimeMs) / (1000 * 60 * 60),
   );
-  const reservedDurationHours = session.hours || 0;
-  const originalPaidAmount = session.original_paid_amount || 0;
+  const reservedDurationHours = Number(session.hours) || 0;
+  const originalPaidAmount = Number(session.original_paid_amount) || 0;
 
   // Tính Overtime
   let overtimeCharge = 0;
@@ -156,11 +156,11 @@ exports.checkout = async ({ ticket_code, image_front, image_back }) => {
     await tx
       .request()
       .input("id", session.id)
-      .input("original", originalPaidAmount)
-      .input("add", additionalCharge)
-      .input("final", totalFinalAmount).query(`
+      .input("orig_amount", Number(originalPaidAmount))
+      .input("add", Number(additionalCharge))
+      .input("final", Number(totalFinalAmount)).query(`
         UPDATE ParkingSession 
-        SET original_paid_amount = @original, additional_charge = @add, final_amount = @final 
+        SET original_paid_amount = @orig_amount, additional_charge = @add, final_amount = @final 
         WHERE id = @id
       `);
 
